@@ -1,0 +1,6 @@
+* AC current-driven RC network
+I1 0 1 AC 1m 0
+R1 1 0 1k
+C1 1 0 1u
+.AC DEC 10 10 100k
+.END
