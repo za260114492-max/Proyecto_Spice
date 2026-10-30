@@ -1,0 +1,6 @@
+* DC voltage divider for Tableau analysis, including an ideal voltage source
+V1 1 0 DC 10
+R1 1 2 1k
+R2 2 0 2k
+.OP
+.END

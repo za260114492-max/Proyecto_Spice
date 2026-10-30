@@ -1,0 +1,7 @@
+* Two-node resistive example compatible with classical nodal analysis
+I1 0 1 DC 1m
+R1 1 0 1k
+R2 1 2 2k
+R3 2 0 1k
+.OP
+.END
