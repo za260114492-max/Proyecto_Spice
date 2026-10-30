@@ -1,0 +1,11 @@
+- `README.md`
+- `ac-frequency-analysis/SKILL.md`
+- `circuit-graph-theory/SKILL.md`
+- `classical-nodal-analysis/SKILL.md`
+- `component-constitutive-models/SKILL.md`
+- `engineering-units-and-conventions/SKILL.md`
+- `explainable-circuit-reporting/SKILL.md`
+- `incidence-matrix-method/SKILL.md`
+- `solver-validation/SKILL.md`
+- `spice-netlist-fundamentals/SKILL.md`
+- `tableau-formulation/SKILL.md`
