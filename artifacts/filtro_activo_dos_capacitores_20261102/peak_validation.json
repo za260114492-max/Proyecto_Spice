@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "source_name": "filtro_activo_dos_capacitores.sp",
+  "analysis": "AC",
+  "frequency_hz": 95.49925860214358,
+  "status": "PASS",
+  "rank": 21,
+  "size": 21,
+  "condition_number": 52012093952.21806,
+  "condition_warning_threshold": 1000000000000.0,
+  "residuals": {
+    "global": {
+      "norm": 1.1641532182713435e-10,
+      "scale": 8704928.954618333,
+      "tolerance": 0.08704928964618333,
+      "passed": true
+    },
+    "kcl": {
+      "norm": 9.586916321472593e-19,
+      "scale": 0.008894138974045061,
+      "tolerance": 1.889413897404506e-10,
+      "passed": true
+    },
+    "branch_voltage": {
+      "norm": 0.0,
+      "scale": 8.764974476220187,
+      "tolerance": 8.774974476220187e-08,
+      "passed": true
+    },
+    "constitutive": {
+      "norm": 1.195593325630232e-10,
+      "scale": 10.3832761734217,
+      "tolerance": 1.03932761734217e-07,
+      "passed": true
+    },
+    "tableau": {
+      "norm": 1.1641532182713435e-10,
+      "scale": 8704928.954618333,
+      "tolerance": 0.08704928964618333,
+      "passed": true
+    }
+  },
+  "normalized_residual": 1.3373494767624852e-17,
+  "atol": 1e-10,
+  "rtol": 1e-08,
+  "errors": [],
+  "warnings": [],
+  "diagnostics": []
+}

@@ -38,6 +38,9 @@ def build_graph(circuit: Circuit) -> nx.MultiDiGraph:
             element_type=branch.element_type,
             value_si=branch.value_si,
             unit=branch.unit,
+            control_node_from=branch.control_node_from,
+            control_node_to=branch.control_node_to,
+            gain=branch.value_si if branch.element_type == "E" else None,
         )
     undirected = graph.to_undirected()
     if graph.number_of_nodes() and not nx.is_connected(undirected):

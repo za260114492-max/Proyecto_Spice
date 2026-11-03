@@ -1,0 +1,198 @@
+{
+  "schema_version": "1.0",
+  "source_name": "analysis_input.sp",
+  "reference_node": "0",
+  "nodes": [
+    {
+      "id": "0",
+      "index_full": 0,
+      "index_reduced": null,
+      "is_reference": true
+    },
+    {
+      "id": "1",
+      "index_full": 1,
+      "index_reduced": 0,
+      "is_reference": false
+    },
+    {
+      "id": "2",
+      "index_full": 2,
+      "index_reduced": 1,
+      "is_reference": false
+    },
+    {
+      "id": "3",
+      "index_full": 3,
+      "index_reduced": 2,
+      "is_reference": false
+    },
+    {
+      "id": "4",
+      "index_full": 4,
+      "index_reduced": 3,
+      "is_reference": false
+    },
+    {
+      "id": "5",
+      "index_full": 5,
+      "index_reduced": 4,
+      "is_reference": false
+    }
+  ],
+  "branches": [
+    {
+      "id": "B1",
+      "index": 0,
+      "component_name": "V1",
+      "element_type": "V",
+      "node_from": "1",
+      "node_to": "0",
+      "value_si": 0.01,
+      "unit": "volt",
+      "source_kind": "AC",
+      "ac_magnitude": 0.01,
+      "ac_phase_deg": 0.0,
+      "source_line": "V1 1 0 AC 10m",
+      "line_number": 8,
+      "control_node_from": null,
+      "control_node_to": null
+    },
+    {
+      "id": "B2",
+      "index": 1,
+      "component_name": "C1",
+      "element_type": "C",
+      "node_from": "1",
+      "node_to": "2",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "C1 1 2 1u",
+      "line_number": 11,
+      "control_node_from": null,
+      "control_node_to": null
+    },
+    {
+      "id": "B3",
+      "index": 2,
+      "component_name": "C2",
+      "element_type": "C",
+      "node_from": "2",
+      "node_to": "3",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "C2 2 3 1u",
+      "line_number": 12,
+      "control_node_from": null,
+      "control_node_to": null
+    },
+    {
+      "id": "B4",
+      "index": 3,
+      "component_name": "R1",
+      "element_type": "R",
+      "node_from": "2",
+      "node_to": "5",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R1 2 5 1k",
+      "line_number": 15,
+      "control_node_from": null,
+      "control_node_to": null
+    },
+    {
+      "id": "B5",
+      "index": 4,
+      "component_name": "R2",
+      "element_type": "R",
+      "node_from": "3",
+      "node_to": "0",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R2 3 0 1k",
+      "line_number": 16,
+      "control_node_from": null,
+      "control_node_to": null
+    },
+    {
+      "id": "B6",
+      "index": 5,
+      "component_name": "R5",
+      "element_type": "R",
+      "node_from": "5",
+      "node_to": "4",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R5 5 4 1k",
+      "line_number": 19,
+      "control_node_from": null,
+      "control_node_to": null
+    },
+    {
+      "id": "B7",
+      "index": 6,
+      "component_name": "R3",
+      "element_type": "R",
+      "node_from": "4",
+      "node_to": "0",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R3 4 0 1k",
+      "line_number": 20,
+      "control_node_from": null,
+      "control_node_to": null
+    },
+    {
+      "id": "B8",
+      "index": 7,
+      "component_name": "E_A1",
+      "element_type": "E",
+      "node_from": "5",
+      "node_to": "0",
+      "value_si": 1000000.0,
+      "unit": "dimensionless",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "E_A1 5 0 3 4 1e6",
+      "line_number": 23,
+      "control_node_from": "3",
+      "control_node_to": "4"
+    }
+  ],
+  "directives": [
+    {
+      "command": "AC",
+      "sweep": "DEC",
+      "points": 100,
+      "f_start_hz": 10.0,
+      "f_stop_hz": 1000.0,
+      "source_line": ".AC DEC 100 10 1k",
+      "line_number": 25
+    },
+    {
+      "command": "END",
+      "source_line": ".END",
+      "line_number": 34
+    }
+  ],
+  "warnings": []
+}

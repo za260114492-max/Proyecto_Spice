@@ -62,6 +62,7 @@ class GenerateReportTests(unittest.TestCase):
             validation=self.validation,
             input_hashes={"netlist": "a" * 64},
         )
+        self.assertEqual(report.count("# Reporte explicable de análisis SPICE:"), 1)
         for expected in (
             "**Estado del reporte: PASS.**",
             "## 2. Netlist original",

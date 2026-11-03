@@ -63,6 +63,7 @@ class BasicSpiceWorkflowTests(unittest.TestCase):
         self.assertEqual(matrices["shapes"]["Y"], [3, 3])
         self.assertEqual(matrices["shapes"]["Z"], [3, 3])
         self.assertEqual(matrices["shapes"]["W"], [3])
+        self.assertEqual(matrices["shapes"]["Q"], [3, 1])
         self.assertEqual(matrices["row_order"], ["B1", "B2", "B3"])
 
     def test_voltage_source_tableau_solve_and_validation(self) -> None:

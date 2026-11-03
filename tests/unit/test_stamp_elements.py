@@ -43,6 +43,19 @@ class ElementStampTests(unittest.TestCase):
         self.assertAlmostEqual(stamps["I1"]["W"]["imag"], 0.002)
         self.assertAlmostEqual(stamps["V1"]["W"]["real"], 5.0)
 
+    def test_vcvs_stamp_preserves_control_terminals_and_gain(self) -> None:
+        circuit = build_circuit(
+            parse_netlist_text("E1 3 0 1 2 10k\nR1 3 0 1k\nR2 1 0 1k\n.END\n")
+        )
+        result = build_element_stamps(circuit, "AC", 100.0)
+        controlled = result["stamps"][0]
+
+        self.assertEqual(controlled["element_type"], "E")
+        self.assertEqual(controlled["control_node_from"], "1")
+        self.assertEqual(controlled["control_node_to"], "2")
+        self.assertEqual(controlled["gain"], 10000.0)
+        self.assertIn("V_branch = gain*", controlled["equation"])
+
     def test_dc_defined_source_is_zero_in_ac_analysis(self) -> None:
         parsed = parse_netlist_text("I1 0 1 DC 2m\nR1 1 0 1k\n.END\n")
         result = build_element_stamps(build_circuit(parsed), "AC", 60.0)

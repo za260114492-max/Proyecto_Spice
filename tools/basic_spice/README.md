@@ -104,7 +104,7 @@ Para reportar un punto Tableau, añade `--stamps-json`, `--constitutive-json`, `
 
 ## Límite del MVP
 
-`build_nodal_system.py` rechaza intencionalmente fuentes ideales de voltaje porque el análisis nodal clásico no representa directamente su corriente desconocida. Para circuitos soportados con esas fuentes, utiliza el flujo Tableau descrito arriba.
+`build_nodal_system.py` rechaza intencionalmente fuentes ideales de voltaje y fuentes controladas porque el análisis nodal clásico no representa directamente sus corrientes desconocidas. Para fuentes independientes y fuentes VCVS (`Ename n+ n- nc+ nc- ganancia`), utiliza el flujo Tableau. La VCVS se modela como `V(n+) - V(n-) = ganancia * (V(nc+) - V(nc-))`; la matriz `Q` acopla los nodos de control a la ecuación constitutiva. `E` requiere un nombre que comience por E, cuatro terminales y una ganancia finita; no modela otros tipos de fuente controlada ni un op amp ideal abstracto.
 
 `validate_netlist.py` consume el JSON de `parse_netlist.py`: comprueba referencia a tierra, conectividad, coherencia semántica y directivas. Los errores sintácticos y elementos no soportados se detienen antes, durante el parseo. Ante estado `FAIL`, no continúes con el modelo.
 
@@ -116,7 +116,7 @@ python tools/basic_spice/stamp_elements.py artifacts/circuit.json --analysis AC 
 
 Los stamps se consumen para construir el bloque constitutivo y el sistema Tableau, pero no los usa el ensamblador nodal clásico. En análisis DC estacionario, el capacitor ideal queda abierto y el inductor ideal en cortocircuito. En análisis AC, las fuentes definidas como DC se representan por fasor cero y viceversa.
 
-`build_constitutive_matrices.py` consume el modelo del circuito y los stamps. Produce matrices diagonales `Y` y `Z` y el vector `W`, según `Y @ Vb + Z @ I = W`. El orden de ramas se conserva y cada fila incluye ecuación, componente, línea de origen y unidades.
+`build_constitutive_matrices.py` consume el modelo del circuito y los stamps. Produce las matrices diagonales `Y` y `Z`, el vector `W` y la matriz `Q` de acoplamiento de nodos de control para VCVS. Las ecuaciones se ensamblan como `Y @ Vb + Z @ I + Q @ Vn = W`; cuando no hay fuentes controladas, `Q` es una matriz cero. El orden de ramas se conserva y cada fila incluye ecuaci?n, componente, l?nea de origen y unidades.
 
 `build_tableau_system.py` combina la incidencia y el bloque constitutivo en `T @ X = W_prime`, con `X = [Vb; I; Vn]`. `solve_linear_system.py --tableau` resuelve ese sistema sin invertir la matriz y marca el resultado `SOLVED_NOT_VALIDATED`. `validate_solution.py` vuelve a calcular, de forma independiente, los residuos global, KCL, rama-nodo y constitutivo, además del rango y el número de condición. `solve_ac_sweep.py` usa este flujo validado en cada punto. Solo presenta estado `PASS` cuando los residuos cumplen las tolerancias configuradas; un resultado resuelto no equivale por sí mismo a uno validado.
 

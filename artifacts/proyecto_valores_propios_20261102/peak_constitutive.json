@@ -1,0 +1,964 @@
+{
+  "schema_version": "1.0",
+  "source_name": "analysis_input.sp",
+  "analysis": "AC",
+  "frequency_hz": 223.872113856834,
+  "omega_rad_s": 1406.629976472495,
+  "equation_convention": "Y @ Vb + Z @ I + Q @ Vn = W",
+  "unknown_order": {
+    "branch_voltage": [
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8"
+    ],
+    "branch_current": [
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8"
+    ],
+    "node_voltage": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ]
+  },
+  "row_order": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7",
+    "B8"
+  ],
+  "row_equations": [
+    {
+      "row_index": 0,
+      "branch_id": "B1",
+      "component_name": "V1",
+      "element_type": "V",
+      "equation": "V = E",
+      "source_line": "V1 1 0 AC 10m",
+      "line_number": 8,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 1,
+      "branch_id": "B2",
+      "component_name": "C1",
+      "element_type": "C",
+      "equation": "j*omega*C*V - I = 0",
+      "source_line": "C1 1 2 1u",
+      "line_number": 11,
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    },
+    {
+      "row_index": 2,
+      "branch_id": "B3",
+      "component_name": "C2",
+      "element_type": "C",
+      "equation": "j*omega*C*V - I = 0",
+      "source_line": "C2 2 3 1u",
+      "line_number": 12,
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    },
+    {
+      "row_index": 3,
+      "branch_id": "B4",
+      "component_name": "R1",
+      "element_type": "R",
+      "equation": "V - R*I = 0",
+      "source_line": "R1 2 5 1k",
+      "line_number": 15,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 4,
+      "branch_id": "B5",
+      "component_name": "R2",
+      "element_type": "R",
+      "equation": "V - R*I = 0",
+      "source_line": "R2 3 0 1k",
+      "line_number": 16,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 5,
+      "branch_id": "B6",
+      "component_name": "R5",
+      "element_type": "R",
+      "equation": "V - R*I = 0",
+      "source_line": "R5 5 4 1k",
+      "line_number": 19,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 6,
+      "branch_id": "B7",
+      "component_name": "R3",
+      "element_type": "R",
+      "equation": "V - R*I = 0",
+      "source_line": "R3 4 0 1k",
+      "line_number": 20,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 7,
+      "branch_id": "B8",
+      "component_name": "E_A1",
+      "element_type": "E",
+      "equation": "V_branch = gain*(V_control+ - V_control-)",
+      "source_line": "E_A1 5 0 3 4 1e6",
+      "line_number": 23,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    }
+  ],
+  "Y": [
+    [
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0014066299764724948
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0014066299764724948
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      }
+    ]
+  ],
+  "Z": [
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1000.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1000.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1000.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1000.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ]
+  ],
+  "Q": [
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1000000.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1000000.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ]
+  ],
+  "W": [
+    {
+      "real": 0.01,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    }
+  ],
+  "shapes": {
+    "Y": [
+      8,
+      8
+    ],
+    "Z": [
+      8,
+      8
+    ],
+    "Q": [
+      8,
+      5
+    ],
+    "W": [
+      8
+    ]
+  },
+  "row_units": {
+    "Y": [
+      "dimensionless",
+      "siemens",
+      "siemens",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless"
+    ],
+    "Z": [
+      "ohm",
+      "dimensionless",
+      "dimensionless",
+      "ohm",
+      "ohm",
+      "ohm",
+      "ohm",
+      "ohm"
+    ],
+    "Q": [
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless"
+    ],
+    "W": [
+      "volt",
+      "ampere",
+      "ampere",
+      "volt",
+      "volt",
+      "volt",
+      "volt",
+      "volt"
+    ]
+  }
+}

@@ -107,6 +107,24 @@ def _stamp(
         )
     if element_type == "V":
         return 1.0, 0.0, _source_value(branch, analysis), "dimensionless", "ohm", "volt", "V = E"
+    if element_type == "E":
+        if (
+            branch.control_node_from is None
+            or branch.control_node_to is None
+            or not math.isfinite(branch.value_si)
+        ):
+            raise ElementStampError(
+                f"{branch.component_name}: VCVS control nodes and finite gain are required"
+            )
+        return (
+            1.0,
+            0.0,
+            0.0,
+            "dimensionless",
+            "ohm",
+            "volt",
+            "V_branch = gain*(V_control+ - V_control-)",
+        )
     if element_type == "I":
         return (
             0.0,
@@ -119,7 +137,7 @@ def _stamp(
         )
     raise ElementStampError(
         f"{branch.component_name}: unsupported element type {element_type!r}; "
-        "supported types are R, C, L, V, I"
+        "supported types are R, C, L, V, I, E"
     )
 
 
@@ -158,6 +176,9 @@ def build_element_stamps(
                 "source_kind": branch.source_kind,
                 "node_from": branch.node_from,
                 "node_to": branch.node_to,
+                "control_node_from": branch.control_node_from,
+                "control_node_to": branch.control_node_to,
+                "gain": branch.value_si if branch.element_type == "E" else None,
                 "source_line": branch.source_line,
                 "line_number": branch.line_number,
                 "equation": equation,

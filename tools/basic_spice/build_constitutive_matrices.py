@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assemble traceable Tableau Y, Z, and W from scalar branch stamps."""
+"""Assemble Tableau Y, Z, W, and VCVS control-node coupling Q."""
 from __future__ import annotations
 
 import argparse
@@ -107,8 +107,11 @@ def build_constitutive_matrices(
         )
 
     size = len(branches)
+    node_order = [node.id for node in circuit.nodes if not node.is_reference]
+    node_indices = {node: index for index, node in enumerate(node_order)}
     y_matrix = np.zeros((size, size), dtype=complex)
     z_matrix = np.zeros((size, size), dtype=complex)
+    q_matrix = np.zeros((size, len(node_order)), dtype=complex)
     w_vector = np.zeros(size, dtype=complex)
     equation_rows: list[dict[str, Any]] = []
     seen_branch_ids: set[str] = set()
@@ -128,6 +131,9 @@ def build_constitutive_matrices(
             "element_type": branch.element_type,
             "node_from": branch.node_from,
             "node_to": branch.node_to,
+            "control_node_from": branch.control_node_from,
+            "control_node_to": branch.control_node_to,
+            "gain": branch.value_si if branch.element_type == "E" else None,
             "source_line": branch.source_line,
             "line_number": branch.line_number,
         }
@@ -153,6 +159,13 @@ def build_constitutive_matrices(
         y_matrix[row_index, row_index] = y_value
         z_matrix[row_index, row_index] = z_value
         w_vector[row_index] = w_value
+        if branch.element_type == "E":
+            if branch.control_node_from not in node_indices or branch.control_node_to not in node_indices:
+                raise ConstitutiveMatrixError(
+                    f"Control nodes for {branch.component_name} are missing from the circuit node order"
+                )
+            q_matrix[row_index, node_indices[branch.control_node_from]] -= branch.value_si
+            q_matrix[row_index, node_indices[branch.control_node_to]] += branch.value_si
         equation_rows.append(
             {
                 "row_index": row_index,
@@ -174,24 +187,28 @@ def build_constitutive_matrices(
         "analysis": analysis,
         "frequency_hz": expected_frequency,
         "omega_rad_s": omega,
-        "equation_convention": "Y @ Vb + Z @ I = W",
+        "equation_convention": "Y @ Vb + Z @ I + Q @ Vn = W",
         "unknown_order": {
             "branch_voltage": expected_order,
             "branch_current": expected_order,
+            "node_voltage": node_order,
         },
         "row_order": expected_order,
         "row_equations": equation_rows,
         "Y": _complex_matrix_records(y_matrix),
         "Z": _complex_matrix_records(z_matrix),
+        "Q": _complex_matrix_records(q_matrix),
         "W": _complex_vector_records(w_vector),
         "shapes": {
             "Y": list(y_matrix.shape),
             "Z": list(z_matrix.shape),
+            "Q": list(q_matrix.shape),
             "W": [size],
         },
         "row_units": {
             "Y": [row["Y_unit"] for row in equation_rows],
             "Z": [row["Z_unit"] for row in equation_rows],
+            "Q": ["dimensionless"] * size,
             "W": [row["W_unit"] for row in equation_rows],
         },
     }

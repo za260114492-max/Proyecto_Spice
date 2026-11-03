@@ -38,7 +38,14 @@ PREFIXES = {
     "p": 1e-12,
     "f": 1e-15,
 }
-UNITS = {"R": "ohm", "C": "farad", "L": "henry", "V": "volt", "I": "ampere"}
+UNITS = {
+    "R": "ohm",
+    "C": "farad",
+    "L": "henry",
+    "V": "volt",
+    "I": "ampere",
+    "E": "dimensionless",
+}
 PROBE_VOLTAGE_RE = re.compile(r"^V\(([^()]+)\)$", re.IGNORECASE)
 
 
@@ -112,6 +119,30 @@ def _parse_source(tokens: list[str], line_number: int, source_line: str) -> dict
     }
 
 
+def _parse_vcvs(tokens: list[str], line_number: int, source_line: str) -> dict[str, Any]:
+    if len(tokens) != 6:
+        raise NetlistParseError(
+            f"Line {line_number}: E source requires: name output+ output- control+ control- gain"
+        )
+    name, output_plus, output_minus, control_plus, control_minus, gain_token = tokens
+    gain = parse_engineering_value(gain_token)
+    return {
+        "name": name,
+        "type": "E",
+        "node_from": normalize_node(output_plus),
+        "node_to": normalize_node(output_minus),
+        "control_node_from": normalize_node(control_plus),
+        "control_node_to": normalize_node(control_minus),
+        "value_si": gain,
+        "unit": "dimensionless",
+        "source_kind": None,
+        "ac_magnitude": None,
+        "ac_phase_deg": None,
+        "source_line": source_line,
+        "line_number": line_number,
+    }
+
+
 def parse_component(tokens: list[str], line_number: int, source_line: str) -> dict[str, Any]:
     """Parse one supported component line."""
     if not tokens or not tokens[0]:
@@ -119,8 +150,10 @@ def parse_component(tokens: list[str], line_number: int, source_line: str) -> di
     designator = tokens[0][0].upper()
     if designator not in UNITS:
         raise NetlistParseError(
-            f"Line {line_number}: unsupported element {tokens[0]!r}; supported: R, C, L, V, I"
+            f"Line {line_number}: unsupported element {tokens[0]!r}; supported: R, C, L, V, I, E"
         )
+    if designator == "E":
+        return _parse_vcvs(tokens, line_number, source_line)
     if designator in {"V", "I"}:
         return _parse_source(tokens, line_number, source_line)
     if len(tokens) != 4:
@@ -226,8 +259,13 @@ def parse_netlist_text(text: str, source_name: str = "<memory>") -> dict[str, An
         raise NetlistParseError("The netlist contains no supported elements")
     if not saw_end:
         warnings.append(".END directive not found; parsed to end of file")
+    node_ids = {e["node_from"] for e in elements} | {e["node_to"] for e in elements}
+    for element in elements:
+        for key in ("control_node_from", "control_node_to"):
+            if element.get(key) is not None:
+                node_ids.add(element[key])
     nodes = sorted(
-        {e["node_from"] for e in elements} | {e["node_to"] for e in elements},
+        node_ids,
         key=lambda x: (x != "0", 0, int(x)) if x.isdigit() else (True, 1, x.lower()),
     )
     if "0" not in nodes:

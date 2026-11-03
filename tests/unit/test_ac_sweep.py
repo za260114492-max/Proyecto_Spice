@@ -86,6 +86,19 @@ class ACSweepTests(unittest.TestCase):
         self.assertAlmostEqual(first["gain_db"], 20 * math.log10(abs(expected)))
         self.assertTrue(all(point["validation"]["status"] == "PASS" for point in result["points"]))
 
+    def test_active_filter_finite_gain_vcvs_ac_sweep_passes(self) -> None:
+        parsed = parse_netlist_text(
+            "V1 VI 0 AC 1\nC1 VI N1 10u\nC2 N1 N2 4.7u\n"
+            "R_G1 N1 VO 1k\nR_G2 N2 0 500\nRA NMINUS 0 10k\n"
+            "RB VO NMINUS 90k\nEOP VO 0 N2 NMINUS 1MEG\n"
+            ".AC DEC 10 1 1MEG\n.END\n"
+        )
+        circuit = build_circuit(parsed)
+        result = solve_ac_sweep(circuit, build_incidence_matrices(circuit), "VI", "VO")
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["frequency_count"], 61)
+        self.assertTrue(all(point["status"] == "PASS" for point in result["points"]))
+
     def test_probe_directive_supplies_transfer_nodes_for_decade_sweep(self) -> None:
         parsed = parse_netlist_text(
             "V1 IN 0 AC 1\nR1 IN OUT 1k\nC1 OUT 0 1u\n"

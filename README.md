@@ -35,3 +35,6 @@ Para ejecutar el flujo completo de ejemplo y consultar las opciones de cada herr
 - [Especificación de la Unidad I (Markdown)](docs/reference/ESPECIFICACION_UNIDAD_1.md)
 - [Originales PDF/DOCX](docs/reference/originals/)
 - [Planes de desarrollo e integración](docs/plans/)
+
+- [Bitácora del proyecto](docs/bitacora/BITACORA.md) — registro cronológico de actividades y validaciones.
+

@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "source_name": "rc_lowpass.cir",
+  "reference_node": "0",
+  "nodes": [
+    {
+      "id": "0",
+      "is_reference": true
+    },
+    {
+      "id": "IN",
+      "is_reference": false
+    },
+    {
+      "id": "OUT",
+      "is_reference": false
+    }
+  ],
+  "edges": [
+    {
+      "node_from": "IN",
+      "node_to": "0",
+      "key": "B1",
+      "branch_id": "B1",
+      "component": "V1",
+      "element_type": "V",
+      "value_si": 1.0,
+      "unit": "volt"
+    },
+    {
+      "node_from": "IN",
+      "node_to": "OUT",
+      "key": "B2",
+      "branch_id": "B2",
+      "component": "R1",
+      "element_type": "R",
+      "value_si": 1000.0,
+      "unit": "ohm"
+    },
+    {
+      "node_from": "OUT",
+      "node_to": "0",
+      "key": "B3",
+      "branch_id": "B3",
+      "component": "C1",
+      "element_type": "C",
+      "value_si": 1e-06,
+      "unit": "farad"
+    }
+  ],
+  "is_connected": true
+}

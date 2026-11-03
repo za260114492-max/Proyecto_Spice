@@ -16,6 +16,7 @@ EXPECTED_UNITS = {
     "L": "henry",
     "V": "volt",
     "I": "ampere",
+    "E": "dimensionless",
 }
 PASSIVE_TYPES = {"R", "C", "L"}
 SOURCE_TYPES = {"V", "I"}
@@ -132,7 +133,7 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                     f"El elemento {component!r} tiene tipo no soportado: {kind!r}.",
                     line_number=line_number,
                     component=component,
-                    suggestion="Usa únicamente R, C, L, V o I en este MVP.",
+                    suggestion="Use R, C, L, V, I or E (VCVS) in this MVP.",
                 )
             )
             continue
@@ -215,6 +216,37 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                     suggestion="Usa un valor pasivo mayor que cero.",
                 )
             )
+
+        if kind == "E":
+            control_from = element.get("control_node_from")
+            control_to = element.get("control_node_to")
+            if (
+                not isinstance(control_from, str)
+                or not control_from.strip()
+                or not isinstance(control_to, str)
+                or not control_to.strip()
+            ):
+                errors.append(
+                    _issue(
+                        "INVALID_CONTROL_NODE",
+                        f"Controlled source {component!r} requires two valid control nodes.",
+                        line_number=line_number,
+                        component=component,
+                        suggestion="Use Ename n+ n- nc+ nc- gain.",
+                    )
+                )
+            else:
+                control_from, control_to = control_from.strip(), control_to.strip()
+                nodes.update((control_from, control_to))
+                if control_from == control_to:
+                    errors.append(
+                        _issue(
+                            "IDENTICAL_CONTROL_NODES",
+                            f"Source {component!r} senses a voltage difference across one node.",
+                            line_number=line_number,
+                            component=component,
+                        )
+                    )
 
         if kind in SOURCE_TYPES:
             source_kind = element.get("source_kind")

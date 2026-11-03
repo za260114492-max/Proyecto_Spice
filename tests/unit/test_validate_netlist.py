@@ -44,6 +44,21 @@ class ValidateNetlistTests(unittest.TestCase):
         with self.assertRaises(NetlistParseError):
             parse_netlist_text("R1 1 0 1k\n.PROBE AC V(1)\n.END\n")
 
+    def test_vcvs_with_connected_control_nodes_passes(self) -> None:
+        parsed = parse_netlist_text(
+            "V1 IN 0 AC 1\nE1 OUT 0 IN N1 1MEG\nR1 N1 0 1k\n"
+            ".AC LIN 2 1 10\n.END\n"
+        )
+        result = validate_netlist(parsed)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["errors"], [])
+
+    def test_missing_vcvs_control_node_fails_validation(self) -> None:
+        parsed = parse_netlist_text("E1 OUT 0 IN 0 10\nR1 OUT 0 1k\n.END\n")
+        parsed["elements"][0]["control_node_from"] = ""
+        result = validate_netlist(parsed)
+        self.assertIn("INVALID_CONTROL_NODE", {error["code"] for error in result["errors"]})
+
     def test_missing_ground_fails(self) -> None:
         parsed = parse_netlist_text("R1 1 2 1k\n.END\n")
         result = validate_netlist(parsed)

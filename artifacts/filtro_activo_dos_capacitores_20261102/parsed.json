@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0",
+  "source_name": "filtro_activo_dos_capacitores.sp",
+  "elements": [
+    {
+      "name": "V1",
+      "type": "V",
+      "node_from": "VI",
+      "node_to": "0",
+      "value_si": 1.0,
+      "unit": "volt",
+      "source_kind": "AC",
+      "ac_magnitude": 1.0,
+      "ac_phase_deg": 0.0,
+      "source_line": "V1 VI 0 AC 1",
+      "line_number": 6
+    },
+    {
+      "name": "C4",
+      "type": "C",
+      "node_from": "VI",
+      "node_to": "N1",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "C4 VI N1 1u",
+      "line_number": 9
+    },
+    {
+      "name": "C5",
+      "type": "C",
+      "node_from": "N1",
+      "node_to": "N2",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "C5 N1 N2 1u",
+      "line_number": 10
+    },
+    {
+      "name": "R1",
+      "type": "R",
+      "node_from": "N1",
+      "node_to": "VO",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R1 N1 VO 1k",
+      "line_number": 13
+    },
+    {
+      "name": "R2",
+      "type": "R",
+      "node_from": "N2",
+      "node_to": "0",
+      "value_si": 3300.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R2 N2 0 3.3k",
+      "line_number": 14
+    },
+    {
+      "name": "R3",
+      "type": "R",
+      "node_from": "NMINUS",
+      "node_to": "0",
+      "value_si": 3300.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R3 NMINUS 0 3.3k",
+      "line_number": 17
+    },
+    {
+      "name": "R5",
+      "type": "R",
+      "node_from": "VO",
+      "node_to": "NMINUS",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R5 VO NMINUS 1k",
+      "line_number": 18
+    },
+    {
+      "name": "EOP",
+      "type": "E",
+      "node_from": "VO",
+      "node_to": "0",
+      "control_node_from": "N2",
+      "control_node_to": "NMINUS",
+      "value_si": 1000000.0,
+      "unit": "dimensionless",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "EOP VO 0 N2 NMINUS 1e6",
+      "line_number": 22
+    }
+  ],
+  "directives": [
+    {
+      "command": "AC",
+      "sweep": "DEC",
+      "points": 100,
+      "f_start_hz": 1.0,
+      "f_stop_hz": 1000000.0,
+      "source_line": ".AC DEC 100 1 1MEG",
+      "line_number": 25
+    },
+    {
+      "command": "END",
+      "source_line": ".END",
+      "line_number": 27
+    }
+  ],
+  "nodes": [
+    "0",
+    "N1",
+    "N2",
+    "NMINUS",
+    "VI",
+    "VO"
+  ],
+  "warnings": []
+}

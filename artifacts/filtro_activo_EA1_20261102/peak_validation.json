@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "source_name": "filtro_activo_EA1_ac.sp",
+  "analysis": "AC",
+  "frequency_hz": 95.49925860214358,
+  "status": "PASS",
+  "rank": 21,
+  "size": 21,
+  "condition_number": 52012093970.48782,
+  "condition_warning_threshold": 1000000000000.0,
+  "residuals": {
+    "global": {
+      "norm": 7.27595761418356e-12,
+      "scale": 87049.28954618333,
+      "tolerance": 0.0008704929954618334,
+      "passed": true
+    },
+    "kcl": {
+      "norm": 8.409228603367111e-21,
+      "scale": 8.894138974045062e-05,
+      "tolerance": 1.0088941389740452e-10,
+      "passed": true
+    },
+    "branch_voltage": {
+      "norm": 0.0,
+      "scale": 0.0876497447622019,
+      "tolerance": 9.76497447622019e-10,
+      "passed": true
+    },
+    "constitutive": {
+      "norm": 5.191983944387339e-12,
+      "scale": 0.10383276172839874,
+      "tolerance": 1.1383276172839875e-09,
+      "passed": true
+    },
+    "tableau": {
+      "norm": 7.27595761418356e-12,
+      "scale": 87049.28954618333,
+      "tolerance": 0.0008704929954618334,
+      "passed": true
+    }
+  },
+  "normalized_residual": 8.358434229751361e-17,
+  "atol": 1e-10,
+  "rtol": 1e-08,
+  "errors": [],
+  "warnings": [],
+  "diagnostics": []
+}

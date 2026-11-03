@@ -46,6 +46,32 @@ class TableauSystemTests(unittest.TestCase):
         self.assertEqual(tableau["T"][0][0], {"real": 1.0, "imag": 0.0})
         self.assertEqual(tableau["T"][0][6], {"real": -1.0, "imag": 0.0})
 
+    def test_vcvs_ac_tableau_uses_control_node_voltages_and_validates(self) -> None:
+        circuit = build_circuit(
+            parse_netlist_text(
+                "V1 IN 0 AC 1\nE1 OUT 0 IN NCTRL 10\n"
+                "R1 OUT NCTRL 1k\nR2 NCTRL 0 1k\n.AC LIN 2 10 100\n.END\n"
+            )
+        )
+        incidence = build_incidence_matrices(circuit)
+        constitutive = build_constitutive_matrices(
+            circuit, build_element_stamps(circuit, "AC", 10.0)
+        )
+        tableau = build_tableau_system(circuit, incidence, constitutive)
+        solution = solve_tableau_system(tableau)
+        validation = validate_tableau_solution(tableau, solution)
+
+        self.assertEqual(validation["status"], "PASS")
+        node_voltages = {
+            item["label"]: complex(item["real"], item["imag"])
+            for item in solution["node_voltages"]
+        }
+        self.assertAlmostEqual(
+            abs(node_voltages["V(NOUT)"] - 10 * (node_voltages["V(NIN)"] - node_voltages["V(NNCTRL)"])),
+            0.0,
+            places=10,
+        )
+
     def test_incidence_matrix_with_wrong_orientation_is_rejected(self) -> None:
         circuit = build_circuit(
             parse_netlist_text("V1 1 0 DC 10\nR1 1 0 1k\n.END\n")

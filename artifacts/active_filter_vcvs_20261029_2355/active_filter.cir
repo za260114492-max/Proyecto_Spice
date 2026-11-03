@@ -1,0 +1,19 @@
+* Filtro activo con dos capacitores
+* Amplificador operacional no inversor
+
+V1 VI 0 AC 1
+
+C1 VI N1 10u
+C2 N1 N2 4.7u
+
+R_G1 N1 VO 1k
+R_G2 N2 0 500
+
+RA NMINUS 0 10k
+RB VO NMINUS 90k
+
+EOP VO 0 N2 NMINUS 1MEG
+
+.AC DEC 100 1 1MEG
+
+.END

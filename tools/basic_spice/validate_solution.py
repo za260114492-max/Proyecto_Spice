@@ -117,6 +117,7 @@ def validate_tableau_solution(
     a = np.asarray(blocks.get("A_reduced"), dtype=float)
     y = _matrix(blocks.get("Y"), "Y")
     z = _matrix(blocks.get("Z"), "Z")
+    q = _matrix(blocks.get("Q"), "Q")
     w = _vector(blocks.get("W"), "W")
     if not np.isfinite(a).all():
         raise SolutionValidationError("A_reduced contains NaN or infinite values")
@@ -124,9 +125,10 @@ def validate_tableau_solution(
     if (
         y.shape != (branch_count, branch_count)
         or z.shape != (branch_count, branch_count)
-        or w.shape != (branch_count,)
         or a.ndim != 2
         or a.shape[1] != branch_count
+        or q.shape != (branch_count, a.shape[0])
+        or w.shape != (branch_count,)
     ):
         raise SolutionValidationError("A, Y, Z, or W dimensions are inconsistent")
     node_count = a.shape[0]
@@ -186,10 +188,11 @@ def validate_tableau_solution(
             rtol,
         ),
         "constitutive": _metric(
-            y @ vb + z @ currents - w,
+            y @ vb + z @ currents + q @ node_voltages - w,
             float(
                 np.linalg.norm(y @ vb)
                 + np.linalg.norm(z @ currents)
+                + np.linalg.norm(q @ node_voltages)
                 + np.linalg.norm(w)
             ),
             atol,

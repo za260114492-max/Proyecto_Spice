@@ -29,9 +29,12 @@ class ConstitutiveMatrixTests(unittest.TestCase):
     def test_builds_diagonal_y_z_and_w_with_ordered_traceability(self) -> None:
         result = build_constitutive_matrices(self.circuit, self.stamps)
 
-        self.assertEqual(result["equation_convention"], "Y @ Vb + Z @ I = W")
+        self.assertEqual(result["equation_convention"], "Y @ Vb + Z @ I + Q @ Vn = W")
         self.assertEqual(result["row_order"], ["B1", "B2", "B3", "B4", "B5"])
-        self.assertEqual(result["shapes"], {"Y": [5, 5], "Z": [5, 5], "W": [5]})
+        self.assertEqual(
+            result["shapes"],
+            {"Y": [5, 5], "Z": [5, 5], "Q": [5, 2], "W": [5]},
+        )
         self.assertEqual(
             [row["component_name"] for row in result["row_equations"]],
             ["R1", "C1", "L1", "I1", "V1"],

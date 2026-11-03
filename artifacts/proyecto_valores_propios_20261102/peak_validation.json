@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "source_name": "analysis_input.sp",
+  "analysis": "AC",
+  "frequency_hz": 223.872113856834,
+  "status": "PASS",
+  "rank": 21,
+  "size": 21,
+  "condition_number": 15176684667.699892,
+  "condition_warning_threshold": 1000000000000.0,
+  "residuals": {
+    "global": {
+      "norm": 1.8189894035463844e-12,
+      "scale": 69801.45087364364,
+      "tolerance": 0.0006980146087364364,
+      "passed": true
+    },
+    "kcl": {
+      "norm": 6.669544096227792e-21,
+      "scale": 0.00013279213561620263,
+      "tolerance": 1.0132792135616203e-10,
+      "passed": true
+    },
+    "branch_voltage": {
+      "norm": 0.0,
+      "scale": 0.07308735880443236,
+      "tolerance": 8.308735880443236e-10,
+      "passed": true
+    },
+    "constitutive": {
+      "norm": 9.626723204605666e-13,
+      "scale": 0.09273080788354926,
+      "tolerance": 1.0273080788354926e-09,
+      "passed": true
+    },
+    "tableau": {
+      "norm": 1.8189894035463844e-12,
+      "scale": 69801.45087364364,
+      "tolerance": 0.0006980146087364364,
+      "passed": true
+    }
+  },
+  "normalized_residual": 2.6059478431747287e-17,
+  "atol": 1e-10,
+  "rtol": 1e-08,
+  "errors": [],
+  "warnings": [],
+  "diagnostics": []
+}

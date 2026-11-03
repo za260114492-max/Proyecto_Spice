@@ -15,6 +15,8 @@ def circuit_signature(circuit: Circuit) -> str:
             "type": branch.element_type,
             "node_from": branch.node_from,
             "node_to": branch.node_to,
+            "control_node_from": branch.control_node_from,
+            "control_node_to": branch.control_node_to,
             "value_si": branch.value_si,
             "unit": branch.unit,
             "source_kind": branch.source_kind,

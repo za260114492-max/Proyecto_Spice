@@ -47,6 +47,8 @@ Los otros scripts descritos en los planes o en algunos skills no están disponib
 
 ## Flujo de análisis
 
+Si el usuario pide resolver un circuito sin adjuntar un netlist ni indicar una ruta, busca archivos `.cir`, `.sp` o `.net` en `circuitos/`. Usa el único archivo encontrado; si hay más de uno y el circuito solicitado no se identifica claramente, pregunta cuál debe analizarse. No modifiques los netlists originales.
+
 1. Lee el netlist sin modificarlo y determina si su sintaxis, componentes y análisis están dentro del subconjunto implementado.
 2. Aplica las reglas de los skills pertinentes para interpretar prefijos, tierra, orientación de ramas y unidades.
 3. Ejecuta las herramientas disponibles, en este orden: parseo, validación semántica, modelo del circuito, grafo orientado y matriz de incidencia. Selecciona después la formulación: usa ensamblaje nodal para circuitos compatibles; para Tableau, genera stamps, matrices constitutivas, sistema Tableau, solución y validación. Para barridos AC, ejecuta `solve_ac_sweep.py` con nodos de entrada y salida explícitos. No continúes si `validate_netlist.py` devuelve `FAIL`.

@@ -636,14 +636,15 @@ def generate_report(
         [
             "## 5. Ramas y orientación",
             "",
-            "| Rama | Componente | Orientación | Tipo | Valor SI | Unidad |",
-            "|---|---|---|---|---:|---|",
+            "| Rama | Componente | Orientación | Nodos de control | Tipo | Valor SI | Unidad |",
+            "|---|---|---|---|---|---:|---|",
         ]
     )
     for branch in branches:
         lines.append(
             f"| {_md(branch.get('id'))} | {_md(branch.get('component_name'))} | "
             f"N{_md(branch.get('node_from'))} → N{_md(branch.get('node_to'))} | "
+            f"{('N' + _md(branch.get('control_node_from')) + ' - N' + _md(branch.get('control_node_to'))) if branch.get('element_type') == 'E' else ''} | "
             f"{_md(branch.get('element_type'))} | {_fmt_number(branch.get('value_si'))} | "
             f"{_md(branch.get('unit'))} |"
         )
@@ -737,6 +738,15 @@ def generate_report(
                     constitutive_order,
                 )
             )
+        if "Q" in constitutive:
+            lines.extend(
+                _matrix_table(
+                    "Q (matriz de nodos de control)",
+                    constitutive.get("Q"),
+                    constitutive_order,
+                    constitutive.get("unknown_order", {}).get("node_voltage", []),
+                )
+            )
         lines.extend(_format_vector(constitutive.get("W"), constitutive_order, "W"))
     lines.extend(["", "## 10. Sistema ensamblado", ""])
     if system is not None:
@@ -762,7 +772,7 @@ def generate_report(
             lines.extend(_format_vector(system.get("rhs"), order, "Vector de excitación"))
     else:
         lines.append("No se proporcionó un sistema nodal o Tableau ensamblado.")
-    lines.extend(_render_results(lines, solution, validation, sweep))
+    _render_results(lines, solution, validation, sweep)
     lines.extend(["### Comparación con referencia", ""])
     if comparison is None:
         lines.append(

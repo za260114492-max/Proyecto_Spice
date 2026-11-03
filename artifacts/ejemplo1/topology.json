@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.0",
+  "source_name": "ejemplo1.sp",
+  "reference_node": "0",
+  "nodes": [
+    {
+      "id": "0",
+      "is_reference": true
+    },
+    {
+      "id": "1",
+      "is_reference": false
+    },
+    {
+      "id": "2",
+      "is_reference": false
+    },
+    {
+      "id": "3",
+      "is_reference": false
+    },
+    {
+      "id": "4",
+      "is_reference": false
+    },
+    {
+      "id": "5",
+      "is_reference": false
+    }
+  ],
+  "edges": [
+    {
+      "node_from": "1",
+      "node_to": "0",
+      "key": "B1",
+      "branch_id": "B1",
+      "component": "V1",
+      "element_type": "V",
+      "value_si": 0.01,
+      "unit": "volt",
+      "control_node_from": null,
+      "control_node_to": null,
+      "gain": null
+    },
+    {
+      "node_from": "1",
+      "node_to": "2",
+      "key": "B2",
+      "branch_id": "B2",
+      "component": "C4",
+      "element_type": "C",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "control_node_from": null,
+      "control_node_to": null,
+      "gain": null
+    },
+    {
+      "node_from": "2",
+      "node_to": "3",
+      "key": "B3",
+      "branch_id": "B3",
+      "component": "C5",
+      "element_type": "C",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "control_node_from": null,
+      "control_node_to": null,
+      "gain": null
+    },
+    {
+      "node_from": "2",
+      "node_to": "5",
+      "key": "B7",
+      "branch_id": "B7",
+      "component": "R3",
+      "element_type": "R",
+      "value_si": 3300.0,
+      "unit": "ohm",
+      "control_node_from": null,
+      "control_node_to": null,
+      "gain": null
+    },
+    {
+      "node_from": "3",
+      "node_to": "0",
+      "key": "B4",
+      "branch_id": "B4",
+      "component": "R1",
+      "element_type": "R",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "control_node_from": null,
+      "control_node_to": null,
+      "gain": null
+    },
+    {
+      "node_from": "4",
+      "node_to": "0",
+      "key": "B5",
+      "branch_id": "B5",
+      "component": "R2",
+      "element_type": "R",
+      "value_si": 3300.0,
+      "unit": "ohm",
+      "control_node_from": null,
+      "control_node_to": null,
+      "gain": null
+    },
+    {
+      "node_from": "4",
+      "node_to": "5",
+      "key": "B6",
+      "branch_id": "B6",
+      "component": "R5",
+      "element_type": "R",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "control_node_from": null,
+      "control_node_to": null,
+      "gain": null
+    },
+    {
+      "node_from": "5",
+      "node_to": "0",
+      "key": "B8",
+      "branch_id": "B8",
+      "component": "E_A1",
+      "element_type": "E",
+      "value_si": 1000000.0,
+      "unit": "dimensionless",
+      "control_node_from": "3",
+      "control_node_to": "4",
+      "gain": 1000000.0
+    }
+  ],
+  "is_connected": true
+}

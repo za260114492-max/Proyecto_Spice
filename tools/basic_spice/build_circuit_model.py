@@ -44,6 +44,8 @@ class Branch:
     ac_phase_deg: float | None = None
     source_line: str = ""
     line_number: int = 0
+    control_node_from: str | None = None
+    control_node_to: str | None = None
 
 
 @dataclass
@@ -70,10 +72,12 @@ def build_circuit(parsed: dict[str, Any]) -> Circuit:
     elements = parsed.get("elements", [])
     if not elements:
         raise CircuitModelError("Parsed data contains no elements")
-    node_ids = sorted(
-        {e["node_from"] for e in elements} | {e["node_to"] for e in elements},
-        key=node_sort_key,
-    )
+    all_node_ids = {e["node_from"] for e in elements} | {e["node_to"] for e in elements}
+    for element in elements:
+        for key in ("control_node_from", "control_node_to"):
+            if element.get(key) is not None:
+                all_node_ids.add(element[key])
+    node_ids = sorted(all_node_ids, key=node_sort_key)
     if "0" not in node_ids:
         raise CircuitModelError("Reference node 0/GND is required")
     nodes: list[Node] = []
@@ -102,6 +106,8 @@ def build_circuit(parsed: dict[str, Any]) -> Circuit:
                 ac_phase_deg=element.get("ac_phase_deg"),
                 source_line=element.get("source_line", ""),
                 line_number=int(element.get("line_number", 0)),
+                control_node_from=element.get("control_node_from"),
+                control_node_to=element.get("control_node_to"),
             )
         )
     return Circuit(

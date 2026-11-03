@@ -134,23 +134,43 @@ def build_tableau_system(
     expected_unknown_order = {
         "branch_voltage": branch_order,
         "branch_current": branch_order,
+        "node_voltage": node_order,
     }
     if constitutive_data.get("unknown_order") != expected_unknown_order:
         raise TableauAssemblyError("Constitutive unknown order does not match circuit branches")
 
     y = _matrix(constitutive_data.get("Y"), "Y")
     z = _matrix(constitutive_data.get("Z"), "Z")
+    q = _matrix(constitutive_data.get("Q"), "Q")
     w = _vector(constitutive_data.get("W"), "W")
     expected_matrix_shape = (branch_count, branch_count)
     if y.shape != expected_matrix_shape or z.shape != expected_matrix_shape:
         raise TableauAssemblyError(
             f"Y and Z must both have shape {expected_matrix_shape}"
         )
+    if q.shape != (branch_count, node_count):
+        raise TableauAssemblyError(
+            f"Q must have shape {(branch_count, node_count)}"
+        )
+    expected_q = np.zeros((branch_count, node_count), dtype=complex)
+    for branch in branches:
+        if branch.element_type == "E":
+            if branch.control_node_from not in node_indices or branch.control_node_to not in node_indices:
+                raise TableauAssemblyError(
+                    f"Control nodes for {branch.component_name} are missing from the node order"
+                )
+            expected_q[branch.index, node_indices[branch.control_node_from]] -= branch.value_si
+            expected_q[branch.index, node_indices[branch.control_node_to]] += branch.value_si
+    if not np.array_equal(q, expected_q):
+        raise TableauAssemblyError(
+            "Q entries do not match controlled voltage sources and node order"
+        )
     if w.shape != (branch_count,):
         raise TableauAssemblyError(f"W must have shape {(branch_count,)}")
     if constitutive_data.get("shapes") != {
         "Y": list(y.shape),
         "Z": list(z.shape),
+        "Q": list(q.shape),
         "W": [branch_count],
     }:
         raise TableauAssemblyError("Constitutive shape metadata does not match matrix data")
@@ -185,9 +205,10 @@ def build_tableau_system(
     tableau[vb_slice, vb_slice] = np.eye(branch_count)
     tableau[vb_slice, node_slice] = -a.T
 
-    # Constitutive equations: Y @ Vb + Z @ I = W
+    # Constitutive equations include node-voltage control terms for VCVS branches.
     tableau[current_slice, vb_slice] = y
     tableau[current_slice, current_slice] = z
+    tableau[current_slice, node_slice] = q
     rhs[current_slice] = w
 
     # KCL: A @ I = 0
@@ -229,13 +250,14 @@ def build_tableau_system(
         },
         "block_equations": {
             "KVL": "Vb - A.T @ Vn = 0",
-            "constitutive": "Y @ Vb + Z @ I = W",
+            "constitutive": "Y @ Vb + Z @ I + Q @ Vn = W",
             "KCL": "A @ I = 0",
         },
         "blocks": {
             "A_reduced": a.tolist(),
             "Y": _matrix_records(y),
             "Z": _matrix_records(z),
+            "Q": _matrix_records(q),
             "W": _vector_records(w),
         },
         "T": _matrix_records(tableau),

@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "source_name": "rc_lowpass.cir",
+  "reference_node": "0",
+  "nodes": [
+    {
+      "id": "0",
+      "index_full": 0,
+      "index_reduced": null,
+      "is_reference": true
+    },
+    {
+      "id": "IN",
+      "index_full": 1,
+      "index_reduced": 0,
+      "is_reference": false
+    },
+    {
+      "id": "OUT",
+      "index_full": 2,
+      "index_reduced": 1,
+      "is_reference": false
+    }
+  ],
+  "branches": [
+    {
+      "id": "B1",
+      "index": 0,
+      "component_name": "V1",
+      "element_type": "V",
+      "node_from": "IN",
+      "node_to": "0",
+      "value_si": 1.0,
+      "unit": "volt",
+      "source_kind": "AC",
+      "ac_magnitude": 1.0,
+      "ac_phase_deg": 0.0,
+      "source_line": "V1 IN 0 AC 1",
+      "line_number": 3
+    },
+    {
+      "id": "B2",
+      "index": 1,
+      "component_name": "R1",
+      "element_type": "R",
+      "node_from": "IN",
+      "node_to": "OUT",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R1 IN OUT 1k",
+      "line_number": 4
+    },
+    {
+      "id": "B3",
+      "index": 2,
+      "component_name": "C1",
+      "element_type": "C",
+      "node_from": "OUT",
+      "node_to": "0",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "C1 OUT 0 1u",
+      "line_number": 5
+    }
+  ],
+  "directives": [
+    {
+      "command": "AC",
+      "sweep": "DEC",
+      "points": 100,
+      "f_start_hz": 1.0,
+      "f_stop_hz": 1000000.0,
+      "source_line": ".AC DEC 100 1 1MEG",
+      "line_number": 7
+    },
+    {
+      "command": "END",
+      "source_line": ".END",
+      "line_number": 9
+    }
+  ],
+  "warnings": []
+}
