@@ -33,7 +33,13 @@ python -m pip install -r tools/basic_spice/requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-The full CLI example is documented in `tools/basic_spice/README.md`. Store generated files under `artifacts/`; do not overwrite user inputs.
+The full CLI example is documented in `tools/basic_spice/README.md`. Store every
+problem-solving run in its own new subfolder of `artifacts/`, named from a
+sanitized problem/netlist name plus a timestamp (`YYYYMMDD_HHMMSS_fff`). Create
+the folder before running tools and send every generated JSON, CSV, image,
+matrix, plot, and report path into it; never write generated files directly in
+the `artifacts/` root or reuse a previous run folder. Preserve the source netlist
+unchanged and copy it into the run folder when useful for provenance.
 
 `validate_netlist.py` checks semantic/topological rules in the parsed JSON; syntax errors are still raised by the parser. `stamp_elements.py` emits traceable per-branch equations, `build_constitutive_matrices.py` assembles `Y`/`Z`/`W`, and `build_tableau_system.py` creates the full `T @ X = W_prime` system. `solve_linear_system.py --tableau` solves it; `validate_solution.py` is the independent acceptance gate. `solve_ac_sweep.py` executes `.AC LIN/DEC` or explicit-frequency sweeps and records per-point transfer and validation. `compare_reference.py` aligns the circuit fingerprint, nodes, and frequencies before comparison; `plot_results.py` produces gain/phase figures with optional reference overlays. `generate_report.py` consumes the source netlist and outputs from the completed stages to create an auditable Markdown report; it never recalculates results and marks missing artifacts. AC reference schema: `docs/reference/AC_REFERENCE_DATA_SCHEMA.md`. Do not claim unexecuted stages ran.
 

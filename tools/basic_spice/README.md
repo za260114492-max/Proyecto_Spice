@@ -37,42 +37,53 @@ por herramienta y `tests/integration/` valida el flujo completo.
 ## Flujo de ejemplo
 
 El ejemplo resuelve el circuito resistivo incluido. Los artefactos se guardan bajo `artifacts/`.
+Cada ejecución debe crear una carpeta nueva con el nombre del problema y la marca
+de tiempo, y guardar todos sus artefactos allí. Ejecuta los comandos de cada
+bloque en la misma sesión de PowerShell para reutilizar `$out`.
 
 ```powershell
-New-Item -ItemType Directory -Force artifacts | Out-Null
-python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/current_source_resistive.cir -o artifacts/parsed.json
-python tools/basic_spice/validate_netlist.py artifacts/parsed.json -o artifacts/validation.json
-python tools/basic_spice/build_circuit_model.py artifacts/parsed.json -o artifacts/circuit.json
-python tools/basic_spice/build_oriented_graph.py artifacts/circuit.json -o artifacts/topology.json --image artifacts/graph.png
-python tools/basic_spice/build_incidence_matrix.py artifacts/circuit.json -o artifacts/incidence.json --markdown artifacts/incidence.md --npz artifacts/incidence.npz
-python tools/basic_spice/stamp_elements.py artifacts/circuit.json --analysis DC -o artifacts/stamps.json
-python tools/basic_spice/build_constitutive_matrices.py artifacts/circuit.json artifacts/stamps.json -o artifacts/constitutive.json
-python tools/basic_spice/build_nodal_system.py artifacts/circuit.json artifacts/incidence.json -o artifacts/nodal.json
-python tools/basic_spice/solve_linear_system.py artifacts/nodal.json artifacts/circuit.json -o artifacts/results.json
+$out = "artifacts/current_source_resistive_$(Get-Date -Format 'yyyyMMdd_HHmmss_fff')"
+if (Test-Path -LiteralPath $out) { throw "Run folder already exists: $out" }
+New-Item -ItemType Directory -Path $out -ErrorAction Stop | Out-Null
+python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/current_source_resistive.cir -o "$out/parsed.json"
+python tools/basic_spice/validate_netlist.py "$out/parsed.json" -o "$out/validation.json"
+python tools/basic_spice/build_circuit_model.py "$out/parsed.json" -o "$out/circuit.json"
+python tools/basic_spice/build_oriented_graph.py "$out/circuit.json" -o "$out/topology.json" --image "$out/graph.png"
+python tools/basic_spice/build_incidence_matrix.py "$out/circuit.json" -o "$out/incidence.json" --markdown "$out/incidence.md" --npz "$out/incidence.npz"
+python tools/basic_spice/stamp_elements.py "$out/circuit.json" --analysis DC -o "$out/stamps.json"
+python tools/basic_spice/build_constitutive_matrices.py "$out/circuit.json" "$out/stamps.json" -o "$out/constitutive.json"
+python tools/basic_spice/build_nodal_system.py "$out/circuit.json" "$out/incidence.json" -o "$out/nodal.json"
+python tools/basic_spice/solve_linear_system.py "$out/nodal.json" "$out/circuit.json" -o "$out/results.json"
 ```
 
 El circuito con fuente ideal de voltaje se resuelve mediante el flujo Tableau:
 
 ```powershell
-python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/voltage_source_divider.cir -o artifacts/tableau_parsed.json
-python tools/basic_spice/validate_netlist.py artifacts/tableau_parsed.json -o artifacts/tableau_validation.json
-python tools/basic_spice/build_circuit_model.py artifacts/tableau_parsed.json -o artifacts/tableau_circuit.json
-python tools/basic_spice/build_incidence_matrix.py artifacts/tableau_circuit.json -o artifacts/tableau_incidence.json
-python tools/basic_spice/stamp_elements.py artifacts/tableau_circuit.json --analysis DC -o artifacts/tableau_stamps.json
-python tools/basic_spice/build_constitutive_matrices.py artifacts/tableau_circuit.json artifacts/tableau_stamps.json -o artifacts/tableau_constitutive.json
-python tools/basic_spice/build_tableau_system.py artifacts/tableau_circuit.json artifacts/tableau_incidence.json artifacts/tableau_constitutive.json -o artifacts/tableau.json
-python tools/basic_spice/solve_linear_system.py --tableau artifacts/tableau.json -o artifacts/tableau_results.json
-python tools/basic_spice/validate_solution.py artifacts/tableau.json artifacts/tableau_results.json -o artifacts/tableau_solution_validation.json
+$out = "artifacts/voltage_source_divider_$(Get-Date -Format 'yyyyMMdd_HHmmss_fff')"
+if (Test-Path -LiteralPath $out) { throw "Run folder already exists: $out" }
+New-Item -ItemType Directory -Path $out -ErrorAction Stop | Out-Null
+python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/voltage_source_divider.cir -o "$out/parsed.json"
+python tools/basic_spice/validate_netlist.py "$out/parsed.json" -o "$out/netlist_validation.json"
+python tools/basic_spice/build_circuit_model.py "$out/parsed.json" -o "$out/circuit.json"
+python tools/basic_spice/build_incidence_matrix.py "$out/circuit.json" -o "$out/incidence.json"
+python tools/basic_spice/stamp_elements.py "$out/circuit.json" --analysis DC -o "$out/stamps.json"
+python tools/basic_spice/build_constitutive_matrices.py "$out/circuit.json" "$out/stamps.json" -o "$out/constitutive.json"
+python tools/basic_spice/build_tableau_system.py "$out/circuit.json" "$out/incidence.json" "$out/constitutive.json" -o "$out/tableau.json"
+python tools/basic_spice/solve_linear_system.py --tableau "$out/tableau.json" -o "$out/results.json"
+python tools/basic_spice/validate_solution.py "$out/tableau.json" "$out/results.json" -o "$out/solution_validation.json"
 ```
 
 El barrido AC y la función de transferencia del filtro RC usan los mismos pasos de modelado y Tableau para cada frecuencia:
 
 ```powershell
-python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/rc_lowpass_ac_sweep.cir -o artifacts/ac_parsed.json
-python tools/basic_spice/validate_netlist.py artifacts/ac_parsed.json -o artifacts/ac_netlist_validation.json
-python tools/basic_spice/build_circuit_model.py artifacts/ac_parsed.json -o artifacts/ac_circuit.json
-python tools/basic_spice/build_incidence_matrix.py artifacts/ac_circuit.json -o artifacts/ac_incidence.json
-python tools/basic_spice/solve_ac_sweep.py artifacts/ac_circuit.json artifacts/ac_incidence.json --input-node 1 --output-node 2 -o artifacts/ac_sweep.json
+$out = "artifacts/rc_lowpass_ac_sweep_$(Get-Date -Format 'yyyyMMdd_HHmmss_fff')"
+if (Test-Path -LiteralPath $out) { throw "Run folder already exists: $out" }
+New-Item -ItemType Directory -Path $out -ErrorAction Stop | Out-Null
+python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/rc_lowpass_ac_sweep.cir -o "$out/parsed.json"
+python tools/basic_spice/validate_netlist.py "$out/parsed.json" -o "$out/netlist_validation.json"
+python tools/basic_spice/build_circuit_model.py "$out/parsed.json" -o "$out/circuit.json"
+python tools/basic_spice/build_incidence_matrix.py "$out/circuit.json" -o "$out/incidence.json"
+python tools/basic_spice/solve_ac_sweep.py "$out/circuit.json" "$out/incidence.json" --input-node 1 --output-node 2 -o "$out/ac_sweep.json"
 ```
 
 `.PROBE AC` y `.PRINT AC` aceptan mediciones `V(nodo)` e `I(componente)`, por ejemplo `.PROBE AC V(OUT) I(R1)`. Cada punto del barrido incluye los fasores solicitados; las corrientes usan la orientación de rama definida por el orden de nodos del netlist. Si no se indican los nodos con `--input-node` y `--output-node`, el flujo toma los dos primeros nodos de tensión distintos de `.PRINT AC` y, después, de `.PROBE AC` para formar `H=Vout/Vin`. Si no hay dos tensiones, registra las mediciones solicitadas sin calcular una transferencia. También se permiten frecuencias explícitas repetidas con `--frequency 10 --frequency 100`, pero no junto con `.AC`. Los puntos singulares o con entrada cero quedan registrados como fallidos, y el comando devuelve código distinto de cero si falla alguno. Para `H=0`, dB y fase se guardan como `null` porque no están definidos. Frecuencia cero no se incluye: DC se trata por separado.
@@ -82,7 +93,7 @@ El parser admite fuentes independientes con DC y AC simultáneos (por ejemplo, `
 Para comparar el barrido con una referencia identificada, prepara un JSON según [el esquema de referencia AC](../../docs/reference/AC_REFERENCE_DATA_SCHEMA.md). Debe incluir datos de la misma topología y condiciones, la huella `circuit_signature` copiada de `ac_sweep.json`, los mismos nodos de entrada/salida y una fila por frecuencia, sin interpolación:
 
 ```powershell
-python tools/basic_spice/compare_reference.py artifacts/ac_sweep.json artifacts/ac_reference.json artifacts/ac_circuit.json -o artifacts/ac_comparison.json --csv artifacts/ac_comparison.csv
+python tools/basic_spice/compare_reference.py "$out/ac_sweep.json" "$out/ac_reference.json" "$out/circuit.json" -o "$out/ac_comparison.json" --csv "$out/ac_comparison.csv"
 ```
 
 Los límites iniciales son 0.1 dB y 1 grado, ajustables con `--max-gain-error-db` y `--max-phase-error-deg`. El CSV detalla errores firmado/absoluto en dB, relativo en ganancia lineal y error de fase circular. Un fallo de tolerancia produce estado `FAIL` y código de salida no cero.
@@ -90,16 +101,16 @@ Los límites iniciales son 0.1 dB y 1 grado, ajustables con `--max-gain-error-db
 Genera las curvas de ganancia/fase y, opcionalmente, superpone una comparación aceptada:
 
 ```powershell
-python tools/basic_spice/plot_results.py artifacts/ac_sweep.json --comparison artifacts/ac_comparison.json --output-prefix artifacts/rc_lowpass --format png
+python tools/basic_spice/plot_results.py "$out/ac_sweep.json" --comparison "$out/ac_comparison.json" --output-prefix "$out/rc_lowpass" --format png
 ```
 
-Produce `rc_lowpass_gain.png`, `rc_lowpass_phase.png` y `rc_lowpass_plot_manifest.json`. También acepta `--format svg`. Si un barrido tiene puntos fallidos, las gráficas individuales los omiten explícitamente y el manifiesto los enumera; una comparación con referencia fallida se rechaza.
+Produce `rc_lowpass_gain.png`, `rc_lowpass_phase.png` y `rc_lowpass_plot_manifest.json`. La frecuencia se muestra en escala lineal con una marca etiquetada cada 100 Hz (100, 200, 300, ...); el eje Y conserva marcas y rejilla principales/secundarias, con cuatro marcas menores por intervalo principal. También acepta `--format svg`. Si un barrido tiene puntos fallidos, las gráficas individuales los omiten explícitamente y el manifiesto los enumera; una comparación con referencia fallida se rechaza.
 
 Genera un reporte Markdown al final del flujo, a partir del netlist original y artefactos conservados. Para incluir el grafo, expórtalo primero; no hace falta incluir una referencia para reportar los resultados del barrido:
 
 ```powershell
-python tools/basic_spice/build_oriented_graph.py artifacts/ac_circuit.json -o artifacts/ac_topology.json --image artifacts/ac_topology.png
-python tools/basic_spice/generate_report.py tools/basic_spice/examples/rc_lowpass_ac_sweep.cir artifacts/ac_parsed.json artifacts/ac_circuit.json artifacts/ac_incidence.json -o artifacts/ac_report.md --graph-json artifacts/ac_topology.json --ac-sweep-json artifacts/ac_sweep.json --plot-manifest-json artifacts/rc_lowpass_plot_manifest.json
+python tools/basic_spice/build_oriented_graph.py "$out/circuit.json" -o "$out/topology.json" --image "$out/topology.png"
+python tools/basic_spice/generate_report.py tools/basic_spice/examples/rc_lowpass_ac_sweep.cir "$out/parsed.json" "$out/circuit.json" "$out/incidence.json" -o "$out/report.md" --graph-json "$out/topology.json" --ac-sweep-json "$out/ac_sweep.json" --plot-manifest-json "$out/rc_lowpass_plot_manifest.json"
 ```
 
 Para reportar un punto Tableau, añade `--stamps-json`, `--constitutive-json`, `--tableau-json`, `--solution-json` y `--validation-json` con los artefactos correspondientes. Para el análisis nodal se puede usar `--nodal-json` y `--solution-json`. `--comparison-json` acepta sólo la comparación asociada al mismo barrido. El generador comprueba identidad y órdenes de nodos/ramas, coteja las líneas del netlist original con el parseo, registra huellas SHA-256 y **no recalcula**. Si falta un artefacto estructural, se declara en el reporte; un reporte sin resultados validados queda `NOT_VALIDATED` y el comando devuelve código distinto de cero.
@@ -113,7 +124,7 @@ Para reportar un punto Tableau, añade `--stamps-json`, `--constitutive-json`, `
 `stamp_elements.py` produce una ecuación por rama con la convención `Y*V_branch + Z*I_branch = W`. Selecciona explícitamente el modo. Ejemplo AC a 1 kHz:
 
 ```powershell
-python tools/basic_spice/stamp_elements.py artifacts/circuit.json --analysis AC --frequency 1000 -o artifacts/ac_stamps.json
+python tools/basic_spice/stamp_elements.py "$out/circuit.json" --analysis AC --frequency 1000 -o "$out/ac_stamps_1khz.json"
 ```
 
 Los stamps se consumen para construir el bloque constitutivo y el sistema Tableau, pero no los usa el ensamblador nodal clásico. En análisis DC estacionario, el capacitor ideal queda abierto y el inductor ideal en cortocircuito. En análisis AC, las fuentes definidas como DC se representan por fasor cero y viceversa.

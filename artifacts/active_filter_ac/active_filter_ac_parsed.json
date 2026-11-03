@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0",
+  "source_name": "active_filter_ac_input.cir",
+  "elements": [
+    {
+      "name": "V1",
+      "type": "V",
+      "node_from": "1",
+      "node_to": "0",
+      "value_si": 0.0,
+      "unit": "volt",
+      "source_kind": "DC_AC",
+      "dc_value_si": 0.0,
+      "ac_magnitude": 0.01,
+      "ac_phase_deg": 0.0,
+      "source_line": "V1 1 0 DC 0 AC 10m",
+      "line_number": 8
+    },
+    {
+      "name": "C1",
+      "type": "C",
+      "node_from": "1",
+      "node_to": "2",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "C1 1 2 1u",
+      "line_number": 11
+    },
+    {
+      "name": "C2",
+      "type": "C",
+      "node_from": "2",
+      "node_to": "3",
+      "value_si": 1e-06,
+      "unit": "farad",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "C2 2 3 1u",
+      "line_number": 12
+    },
+    {
+      "name": "R1",
+      "type": "R",
+      "node_from": "2",
+      "node_to": "5",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R1 2 5 1k",
+      "line_number": 15
+    },
+    {
+      "name": "R2",
+      "type": "R",
+      "node_from": "3",
+      "node_to": "0",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R2 3 0 1k",
+      "line_number": 16
+    },
+    {
+      "name": "R5",
+      "type": "R",
+      "node_from": "5",
+      "node_to": "4",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R5 5 4 1k",
+      "line_number": 19
+    },
+    {
+      "name": "R3",
+      "type": "R",
+      "node_from": "4",
+      "node_to": "0",
+      "value_si": 1000.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R3 4 0 1k",
+      "line_number": 20
+    },
+    {
+      "name": "E_A1",
+      "type": "E",
+      "node_from": "5",
+      "node_to": "0",
+      "control_node_plus": "3",
+      "control_node_minus": "4",
+      "value_si": 1000000.0,
+      "unit": "dimensionless",
+      "source_kind": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "E_A1 5 0 3 4 1e6",
+      "line_number": 23
+    }
+  ],
+  "directives": [
+    {
+      "command": "AC",
+      "sweep": "DEC",
+      "points": 100,
+      "f_start_hz": 10.0,
+      "f_stop_hz": 1000.0,
+      "source_line": ".AC DEC 100 10 1k",
+      "line_number": 25
+    },
+    {
+      "command": "PRINT",
+      "analysis": "AC",
+      "observables": [
+        {
+          "kind": "V",
+          "node": "1"
+        },
+        {
+          "kind": "V",
+          "node": "5"
+        },
+        {
+          "kind": "I",
+          "component": "R5"
+        },
+        {
+          "kind": "I",
+          "component": "V1"
+        }
+      ],
+      "voltage_nodes": [
+        "1",
+        "5"
+      ],
+      "source_line": ".PRINT AC V(1) V(5) I(R5) I(V1)",
+      "line_number": 28
+    },
+    {
+      "command": "PROBE",
+      "analysis": "AC",
+      "observables": [
+        {
+          "kind": "V",
+          "node": "5"
+        },
+        {
+          "kind": "I",
+          "component": "R5"
+        }
+      ],
+      "voltage_nodes": [
+        "5"
+      ],
+      "source_line": ".PROBE AC V(5) I(R5)",
+      "line_number": 29
+    },
+    {
+      "command": "PRINT",
+      "analysis": "AC",
+      "observables": [
+        {
+          "kind": "I",
+          "component": "V1"
+        },
+        {
+          "kind": "I",
+          "component": "R5"
+        },
+        {
+          "kind": "V",
+          "node": "5"
+        }
+      ],
+      "voltage_nodes": [
+        "5"
+      ],
+      "source_line": ".PRINT AC I(V1) I(R5) V(5)",
+      "line_number": 30
+    },
+    {
+      "command": "OPTION",
+      "options": {
+        "POST": "1"
+      },
+      "source_line": ".OPTION POST=1",
+      "line_number": 32
+    },
+    {
+      "command": "OP",
+      "source_line": ".OP",
+      "line_number": 33
+    },
+    {
+      "command": "END",
+      "source_line": ".END",
+      "line_number": 34
+    }
+  ],
+  "nodes": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "warnings": []
+}
