@@ -8,9 +8,9 @@ Purpose:
     to SI units.
 
 Supported MVP elements:
-    R, C, L, independent voltage sources V, independent current sources I.
+    R, C, L, independent sources V/I, and voltage-controlled voltage source E.
 Supported directives:
-    .OP, .AC LIN, .AC DEC, .PROBE AC V(input) V(output), .END
+    .OP, .AC LIN/DEC, .PRINT/.PROBE AC V(node)/I(component), .OPTION, .END
 
 Author: Dr. Francisco E. Rangel-Patiño
 """
@@ -38,8 +38,16 @@ PREFIXES = {
     "p": 1e-12,
     "f": 1e-15,
 }
-UNITS = {"R": "ohm", "C": "farad", "L": "henry", "V": "volt", "I": "ampere"}
-PROBE_VOLTAGE_RE = re.compile(r"^V\(([^()]+)\)$", re.IGNORECASE)
+UNITS = {
+    "R": "ohm",
+    "C": "farad",
+    "L": "henry",
+    "V": "volt",
+    "I": "ampere",
+    "E": "dimensionless",
+}
+OBSERVABLE_RE = re.compile(r"^([VI])\(([^()]+)\)$", re.IGNORECASE)
+OPTION_RE = re.compile(r"^([A-Z][A-Z0-9_]*)=(\S+)$", re.IGNORECASE)
 
 
 class NetlistParseError(ValueError):
@@ -82,21 +90,59 @@ def _parse_source(tokens: list[str], line_number: int, source_line: str) -> dict
         raise NetlistParseError(f"Line {line_number}: source requires at least 4 tokens")
     name, n_plus, n_minus = tokens[:3]
     rest = tokens[3:]
-    kind = "DC"
-    magnitude_token = rest[0]
+    dc_value: float | None = None
+    ac_magnitude: float | None = None
     phase_deg = 0.0
-    if rest[0].upper() in {"DC", "AC"}:
-        kind = rest[0].upper()
-        if len(rest) < 2:
-            raise NetlistParseError(f"Line {line_number}: {kind} source value is missing")
-        magnitude_token = rest[1]
-        if kind == "AC" and len(rest) >= 3:
-            phase_deg = float(rest[2])
-        if len(rest) > (3 if kind == "AC" else 2):
-            raise NetlistParseError(f"Line {line_number}: unsupported source tokens: {' '.join(rest)}")
-    elif len(rest) > 1:
-        raise NetlistParseError(f"Line {line_number}: use DC or AC before additional source tokens")
-    value = parse_engineering_value(magnitude_token)
+    if rest[0].upper() not in {"DC", "AC"}:
+        if len(rest) != 1:
+            raise NetlistParseError(
+                f"Line {line_number}: use DC or AC before additional source tokens"
+            )
+        dc_value = parse_engineering_value(rest[0])
+    else:
+        index = 0
+        seen_modes: set[str] = set()
+        while index < len(rest):
+            mode = rest[index].upper()
+            if mode not in {"DC", "AC"}:
+                raise NetlistParseError(
+                    f"Line {line_number}: expected DC or AC before {rest[index]!r}"
+                )
+            if mode in seen_modes:
+                raise NetlistParseError(f"Line {line_number}: duplicate {mode} source value")
+            seen_modes.add(mode)
+            index += 1
+            if index >= len(rest) or rest[index].upper() in {"DC", "AC"}:
+                raise NetlistParseError(f"Line {line_number}: {mode} source value is missing")
+            value = parse_engineering_value(rest[index])
+            index += 1
+            if mode == "DC":
+                dc_value = value
+            else:
+                ac_magnitude = value
+                if index < len(rest) and rest[index].upper() not in {"DC", "AC"}:
+                    try:
+                        phase_deg = float(rest[index])
+                    except ValueError as exc:
+                        raise NetlistParseError(
+                            f"Line {line_number}: invalid AC phase {rest[index]!r}"
+                        ) from exc
+                    if not math.isfinite(phase_deg):
+                        raise NetlistParseError(
+                            f"Line {line_number}: AC phase must be finite"
+                        )
+                    index += 1
+
+    if dc_value is None and ac_magnitude is None:
+        raise NetlistParseError(f"Line {line_number}: source value is missing")
+    if ac_magnitude is not None and ac_magnitude < 0:
+        raise NetlistParseError(f"Line {line_number}: AC magnitude must be nonnegative")
+    kind = (
+        "DC_AC"
+        if dc_value is not None and ac_magnitude is not None
+        else ("DC" if dc_value is not None else "AC")
+    )
+    value = dc_value if dc_value is not None else ac_magnitude
     return {
         "name": name,
         "type": name[0].upper(),
@@ -105,8 +151,41 @@ def _parse_source(tokens: list[str], line_number: int, source_line: str) -> dict
         "value_si": value,
         "unit": UNITS[name[0].upper()],
         "source_kind": kind,
-        "ac_magnitude": value if kind == "AC" else None,
-        "ac_phase_deg": phase_deg if kind == "AC" else None,
+        "dc_value_si": dc_value if dc_value is not None else 0.0,
+        "ac_magnitude": ac_magnitude,
+        "ac_phase_deg": phase_deg if ac_magnitude is not None else None,
+        "source_line": source_line,
+        "line_number": line_number,
+    }
+
+
+def _parse_controlled_voltage_source(
+    tokens: list[str],
+    line_number: int,
+    source_line: str,
+) -> dict[str, Any]:
+    if len(tokens) != 6:
+        raise NetlistParseError(
+            f"Line {line_number}: E source requires: name node+ node- control+ control- gain"
+        )
+    name, n_plus, n_minus, control_plus, control_minus, gain_token = tokens
+    gain = parse_engineering_value(gain_token)
+    if normalize_node(n_plus) == normalize_node(n_minus):
+        raise NetlistParseError(f"Line {line_number}: E source output nodes must differ")
+    if normalize_node(control_plus) == normalize_node(control_minus):
+        raise NetlistParseError(f"Line {line_number}: E source control nodes must differ")
+    return {
+        "name": name,
+        "type": "E",
+        "node_from": normalize_node(n_plus),
+        "node_to": normalize_node(n_minus),
+        "control_node_plus": normalize_node(control_plus),
+        "control_node_minus": normalize_node(control_minus),
+        "value_si": gain,
+        "unit": UNITS["E"],
+        "source_kind": None,
+        "ac_magnitude": None,
+        "ac_phase_deg": None,
         "source_line": source_line,
         "line_number": line_number,
     }
@@ -119,10 +198,12 @@ def parse_component(tokens: list[str], line_number: int, source_line: str) -> di
     designator = tokens[0][0].upper()
     if designator not in UNITS:
         raise NetlistParseError(
-            f"Line {line_number}: unsupported element {tokens[0]!r}; supported: R, C, L, V, I"
+            f"Line {line_number}: unsupported element {tokens[0]!r}; supported: R, C, L, V, I, E"
         )
     if designator in {"V", "I"}:
         return _parse_source(tokens, line_number, source_line)
+    if designator == "E":
+        return _parse_controlled_voltage_source(tokens, line_number, source_line)
     if len(tokens) != 4:
         raise NetlistParseError(
             f"Line {line_number}: {designator} element requires: name node+ node- value"
@@ -139,6 +220,7 @@ def parse_component(tokens: list[str], line_number: int, source_line: str) -> di
         "value_si": value,
         "unit": UNITS[designator],
         "source_kind": None,
+        "dc_value_si": None,
         "ac_magnitude": None,
         "ac_phase_deg": None,
         "source_line": source_line,
@@ -152,23 +234,52 @@ def parse_directive(tokens: list[str], line_number: int, source_line: str) -> di
         if len(tokens) != 1:
             raise NetlistParseError(f"Line {line_number}: {command} does not accept arguments in this MVP")
         return {"command": command[1:], "source_line": source_line, "line_number": line_number}
-    if command == ".PROBE":
-        if len(tokens) != 4 or tokens[1].upper() != "AC":
+    if command in {".PROBE", ".PRINT"}:
+        if len(tokens) < 3 or tokens[1].upper() != "AC":
             raise NetlistParseError(
-                f"Line {line_number}: expected .PROBE AC V(input) V(output)"
+                f"Line {line_number}: expected {command} AC followed by V(node) or I(component)"
             )
-        nodes: list[str] = []
+        observables: list[dict[str, str]] = []
         for token in tokens[2:]:
-            match = PROBE_VOLTAGE_RE.fullmatch(token)
+            match = OBSERVABLE_RE.fullmatch(token)
+            if not match or not match.group(2).strip():
+                raise NetlistParseError(
+                    f"Line {line_number}: expected observables in the form V(node) or I(component)"
+                )
+            kind, target = match.group(1).upper(), match.group(2).strip()
+            observables.append(
+                {
+                    "kind": kind,
+                    "node" if kind == "V" else "component": (
+                        normalize_node(target) if kind == "V" else target
+                    ),
+                }
+            )
+        return {
+            "command": command[1:],
+            "analysis": "AC",
+            "observables": observables,
+            "voltage_nodes": [item["node"] for item in observables if item["kind"] == "V"],
+            "source_line": source_line,
+            "line_number": line_number,
+        }
+    if command == ".OPTION":
+        if len(tokens) < 2:
+            raise NetlistParseError(f"Line {line_number}: .OPTION requires one or more NAME=VALUE settings")
+        options: dict[str, str] = {}
+        for token in tokens[1:]:
+            match = OPTION_RE.fullmatch(token)
             if not match:
                 raise NetlistParseError(
-                    f"Line {line_number}: expected voltage probes in the form V(node)"
+                    f"Line {line_number}: invalid .OPTION setting {token!r}; expected NAME=VALUE"
                 )
-            nodes.append(normalize_node(match.group(1)))
+            name, value = match.group(1).upper(), match.group(2)
+            if name in options:
+                raise NetlistParseError(f"Line {line_number}: duplicate .OPTION setting {name}")
+            options[name] = value
         return {
-            "command": "PROBE",
-            "analysis": "AC",
-            "voltage_nodes": nodes,
+            "command": "OPTION",
+            "options": options,
             "source_line": source_line,
             "line_number": line_number,
         }
@@ -226,8 +337,18 @@ def parse_netlist_text(text: str, source_name: str = "<memory>") -> dict[str, An
         raise NetlistParseError("The netlist contains no supported elements")
     if not saw_end:
         warnings.append(".END directive not found; parsed to end of file")
+    all_nodes = {e["node_from"] for e in elements} | {e["node_to"] for e in elements}
+    for element in elements:
+        all_nodes.update(
+            node
+            for node in (
+                element.get("control_node_plus"),
+                element.get("control_node_minus"),
+            )
+            if node is not None
+        )
     nodes = sorted(
-        {e["node_from"] for e in elements} | {e["node_to"] for e in elements},
+        all_nodes,
         key=lambda x: (x != "0", 0, int(x)) if x.isdigit() else (True, 1, x.lower()),
     )
     if "0" not in nodes:

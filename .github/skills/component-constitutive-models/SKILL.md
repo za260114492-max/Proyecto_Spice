@@ -16,7 +16,7 @@ Usar cuando se deba clasificar un componente, generar su ecuación corriente-vol
 
 ## Forma general Tableau
 
-Usar `Y*Vb + Z*I = W`, con una ecuación por rama simple o un bloque de ecuaciones aprobado para elementos acoplados.
+Usar `Y*Vb + Z*I + node_coupling*Vn = W`, con una ecuación por rama simple o un bloque de ecuaciones aprobado para elementos acoplados. `node_coupling` es cero para modelos locales de rama.
 
 ## Modelos básicos
 
@@ -26,8 +26,9 @@ Usar `Y*Vb + Z*I = W`, con una ecuación por rama simple o un bloque de ecuacion
 | Conductancia G | G V - I = 0 | G | -1 | 0 |
 | Capacitor C, AC | s C V - I = 0 | sC | -1 | 0 |
 | Inductor L, AC | V - s L I = 0 | 1 | -sL | 0 |
-| Fuente de voltaje E | V = E | 1 | 0 | E |
-| Fuente de corriente J | I = J | 0 | 1 | J |
+| Fuente independiente de voltaje V | Vb = Vsource | 1 | 0 | Vsource |
+| Fuente independiente de corriente I | Ib = Isource | 0 | 1 | Isource |
+| Fuente VCVS E | Vb - gain*(V(nc+) - V(nc-)) = 0 | 1 | 0 | 0 |
 
 ## Contribuciones nodales
 
@@ -47,9 +48,13 @@ Usar `Y*Vb + Z*I = W`, con una ecuación por rama simple o un bloque de ecuacion
 5. Registrar la ecuación y el componente que originaron cada entrada.
 6. Rechazar combinaciones no soportadas.
 
-## Elementos posteriores al MVP
+La fuente VCVS agrega `-gain` en la columna del nodo de control positivo y
+`+gain` en la del nodo de control negativo de la fila constitutiva de su rama.
+El voltaje de salida permanece entre los nodos de salida de la rama. Se resuelve
+mediante Tableau; el análisis nodal clásico no la admite.
 
-Fuentes controladas y op-amps ideales requieren modelos de bloque y ramas especiales. No improvisar sus stamps. Incorporarlos sólo cuando existan ecuaciones, convenciones, tests y referencias aprobadas.
+No asumir que un op-amp ideal es un componente nativo: sólo se soporta cuando
+se representa explícitamente mediante la fuente VCVS `E` y una ganancia finita.
 
 ## Tools relacionadas
 
@@ -57,7 +62,7 @@ Fuentes controladas y op-amps ideales requieren modelos de bloque y ramas especi
 
 ## Validaciones
 
-Unidades, dimensiones, signos, dependencia con `s`, consistencia entre modelo y modo, y correspondencia con la rama.
+Unidades, dimensiones, signos, dependencia con `s`, consistencia entre modelo y modo, correspondencia con la rama y términos de control nodal.
 
 ## Ejemplo
 

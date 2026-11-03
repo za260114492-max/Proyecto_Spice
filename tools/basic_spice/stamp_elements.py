@@ -22,19 +22,32 @@ def _complex_record(value: complex) -> dict[str, float]:
 
 
 def _source_value(branch: Any, analysis: str) -> complex:
-    if not isinstance(branch.source_kind, str) or branch.source_kind not in {"DC", "AC"}:
+    if not isinstance(branch.source_kind, str) or branch.source_kind not in {
+        "DC",
+        "AC",
+        "DC_AC",
+    }:
         raise ElementStampError(
-            f"{branch.component_name}: source_kind must be 'DC' or 'AC'"
+            f"{branch.component_name}: source_kind must be 'DC', 'AC', or 'DC_AC'"
         )
     if not math.isfinite(branch.value_si):
         raise ElementStampError(f"{branch.component_name}: source value must be finite")
-    if branch.source_kind != analysis:
-        return 0.0 + 0.0j
     if analysis == "DC":
-        return complex(branch.value_si)
+        dc_value = getattr(branch, "dc_value_si", None)
+        if dc_value is not None:
+            if not math.isfinite(float(dc_value)):
+                raise ElementStampError(
+                    f"{branch.component_name}: DC source value must be finite"
+                )
+            return complex(float(dc_value))
+        return complex(branch.value_si) if branch.source_kind == "DC" else 0.0 + 0.0j
     magnitude = branch.ac_magnitude
+    if magnitude is None and branch.source_kind == "AC":
+        magnitude = branch.value_si
+    if magnitude is None:
+        return 0.0 + 0.0j
     phase_deg = branch.ac_phase_deg
-    if magnitude is None or not math.isfinite(float(magnitude)) or float(magnitude) < 0:
+    if not math.isfinite(float(magnitude)) or float(magnitude) < 0:
         raise ElementStampError(
             f"{branch.component_name}: AC source magnitude must be finite and nonnegative"
         )
@@ -117,9 +130,29 @@ def _stamp(
             "ampere",
             "I = J",
         )
+    if element_type == "E":
+        if (
+            not math.isfinite(branch.value_si)
+            or not isinstance(branch.control_node_plus, str)
+            or not isinstance(branch.control_node_minus, str)
+        ):
+            raise ElementStampError(
+                f"{branch.component_name}: controlled voltage source requires a finite gain "
+                "and two control nodes"
+            )
+        return (
+            1.0,
+            0.0,
+            0.0,
+            "dimensionless",
+            "ohm",
+            "volt",
+            f"V - {branch.value_si:g}*(V({branch.control_node_plus})"
+            f" - V({branch.control_node_minus})) = 0",
+        )
     raise ElementStampError(
         f"{branch.component_name}: unsupported element type {element_type!r}; "
-        "supported types are R, C, L, V, I"
+        "supported types are R, C, L, V, I, E"
     )
 
 
@@ -156,6 +189,9 @@ def build_element_stamps(
                 "component_name": branch.component_name,
                 "element_type": branch.element_type,
                 "source_kind": branch.source_kind,
+                "dc_value_si": branch.dc_value_si,
+                "control_node_plus": branch.control_node_plus,
+                "control_node_minus": branch.control_node_minus,
                 "node_from": branch.node_from,
                 "node_to": branch.node_to,
                 "source_line": branch.source_line,

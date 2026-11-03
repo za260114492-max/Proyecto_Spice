@@ -79,13 +79,13 @@ def build_nodal_system(
             y_diag[branch.index] = branch_admittance(branch.element_type, branch.value_si, frequency_hz)
         elif branch.element_type == "I":
             if frequency_hz is None:
-                current_branch[branch.index] = branch.value_si if branch.source_kind == "DC" else 0.0
+                dc_value = branch.dc_value_si
+                if dc_value is None and branch.source_kind == "DC":
+                    dc_value = branch.value_si
+                current_branch[branch.index] = dc_value or 0.0
             else:
-                current_branch[branch.index] = (
-                    phasor(branch.ac_magnitude or 0.0, branch.ac_phase_deg)
-                    if branch.source_kind == "AC"
-                    else branch.value_si
-                )
+                magnitude = branch.ac_magnitude or 0.0
+                current_branch[branch.index] = phasor(magnitude, branch.ac_phase_deg)
         elif branch.element_type == "V":
             unsupported.append(f"{branch.component_name}: ideal voltage source")
         else:

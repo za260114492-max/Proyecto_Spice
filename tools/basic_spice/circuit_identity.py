@@ -18,8 +18,11 @@ def circuit_signature(circuit: Circuit) -> str:
             "value_si": branch.value_si,
             "unit": branch.unit,
             "source_kind": branch.source_kind,
+            "dc_value_si": branch.dc_value_si,
             "ac_magnitude": branch.ac_magnitude,
             "ac_phase_deg": branch.ac_phase_deg,
+            "control_node_plus": branch.control_node_plus,
+            "control_node_minus": branch.control_node_minus,
         }
         for branch in circuit.branches
     ]

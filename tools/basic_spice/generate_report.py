@@ -168,12 +168,12 @@ def _render_results(
                 "",
                 f"Función de transferencia: `{_md(sweep.get('transfer_definition'))}`.",
                 "",
-                "La herramienta de barrido no exporta corrientes de rama; "
-                "este reporte no las infiere.",
+                "Las mediciones V(node) e I(component) solicitadas por .PRINT/.PROBE "
+                "se incluyen en cada punto.",
                 "",
                 "| Frecuencia (Hz) | Vin (V, fasor) | Vout (V, fasor) | H(jω) | |H| | "
-                "Ganancia (dB) | Fase (°) | Estado |",
-                "|---:|---:|---:|---:|---:|---:|---:|---|",
+                "Ganancia (dB) | Fase (°) | Mediciones solicitadas | Estado |",
+                "|---:|---:|---:|---:|---:|---:|---:|---|---|",
             ]
         )
         for point in sweep.get("points", []):
@@ -195,11 +195,19 @@ def _render_results(
                 if transfer
                 else _md(point.get("error", "no disponible"))
             )
+            measurement_text = "; ".join(
+                f"{_md(item.get('expression'))}="
+                f"{_fmt_number(item.get('value', {}).get('real'))}"
+                f"+j{_fmt_number(item.get('value', {}).get('imag'))} "
+                f"{_md(item.get('value', {}).get('unit', ''))}"
+                for item in point.get("measurements", [])
+            ) or "—"
             lines.append(
                 f"| {_fmt_number(point.get('frequency_hz'))} | {vin_text} | {vout_text} | "
                 f"{transfer_text} | {_fmt_number(transfer.get('magnitude'))} | "
                 f"{_fmt_number(point.get('gain_db'))} | "
-                f"{_fmt_number(point.get('phase_deg'))} | {_md(point.get('status'))} |"
+                f"{_fmt_number(point.get('phase_deg'))} | {measurement_text} | "
+                f"{_md(point.get('status'))} |"
             )
         lines.append("")
     lines.extend(["## 12. Validaciones", ""])

@@ -151,30 +151,98 @@ def _resolve_observable_nodes(
     circuit: Circuit,
     input_node: str | None,
     output_node: str | None,
-) -> tuple[str, str]:
+) -> tuple[str | None, str | None]:
     if (input_node is None) != (output_node is None):
         raise ACSweepError("Provide both input and output nodes, or neither")
     if input_node is None and output_node is None:
-        probe_directives = [
+        output_directives = [
             directive
             for directive in circuit.directives
-            if directive.get("command") == "PROBE"
+            if directive.get("command") in {"PRINT", "PROBE"}
         ]
-        if len(probe_directives) != 1:
-            raise ACSweepError(
-                "Provide --input-node and --output-node or one .PROBE AC V(input) V(output) directive"
-            )
-        probe_nodes = probe_directives[0].get("voltage_nodes")
-        if (
-            not isinstance(probe_nodes, list)
-            or len(probe_nodes) != 2
-            or any(not isinstance(node, str) or not node.strip() for node in probe_nodes)
-        ):
-            raise ACSweepError("The .PROBE directive must contain exactly two voltage nodes")
-        input_node, output_node = probe_nodes
+        output_directives.sort(
+            key=lambda directive: 0 if directive.get("command") == "PRINT" else 1
+        )
+        for directive in output_directives:
+            nodes = directive.get("voltage_nodes")
+            if not isinstance(nodes, list):
+                nodes = [
+                    observable.get("node")
+                    for observable in directive.get("observables", [])
+                    if isinstance(observable, dict) and observable.get("kind") == "V"
+                ]
+            unique_nodes = list(dict.fromkeys(node for node in nodes if isinstance(node, str)))
+            if len(unique_nodes) >= 2:
+                input_node, output_node = unique_nodes[:2]
+                break
+        if input_node is None and output_node is None:
+            return None, None
     if not isinstance(input_node, str) or not isinstance(output_node, str):
         raise ACSweepError("Input and output nodes must be strings")
     return input_node, output_node
+
+
+def _requested_observables(circuit: Circuit) -> list[tuple[str, str, str]]:
+    requested: list[tuple[str, str, str]] = []
+    for directive in circuit.directives:
+        if directive.get("command") not in {"PRINT", "PROBE"}:
+            continue
+        observables = directive.get("observables")
+        if not isinstance(observables, list):
+            nodes = directive.get("voltage_nodes", [])
+            if not isinstance(nodes, list):
+                raise ACSweepError(f"Malformed .{directive['command']} voltage list")
+            observables = [{"kind": "V", "node": node} for node in nodes]
+        for observable in observables:
+            if not isinstance(observable, dict):
+                raise ACSweepError(f"Malformed .{directive['command']} measurement")
+            kind = observable.get("kind")
+            if kind == "V" and isinstance(observable.get("node"), str):
+                target = observable["node"]
+            elif kind == "I" and isinstance(observable.get("component"), str):
+                target = observable["component"]
+            else:
+                raise ACSweepError(
+                    f"Malformed .{directive['command']} measurement: {observable!r}"
+                )
+            requested.append((directive["command"], kind, target))
+    return requested
+
+
+def _measurement_records(
+    solution: dict[str, Any],
+    circuit: Circuit,
+    observables: list[tuple[str, str, str]],
+) -> list[dict[str, Any]]:
+    node_order = [node.id for node in circuit.nodes if not node.is_reference]
+    branch_by_name = {branch.component_name.upper(): branch for branch in circuit.branches}
+    records: list[dict[str, Any]] = []
+    for command, kind, target in observables:
+        if kind == "V":
+            value = _node_voltage(solution, node_order, target)
+            unit = "volt"
+            expression = f"V({target})"
+        else:
+            branch = branch_by_name.get(target.upper())
+            if branch is None:
+                raise ACSweepError(f"Cannot recover current for component {target!r}")
+            try:
+                raw_value = solution["raw"]["I"][branch.index]
+                value = complex(raw_value["real"], raw_value["imag"])
+            except (KeyError, IndexError, TypeError) as exc:
+                raise ACSweepError(
+                    f"Cannot recover current for component {target!r}"
+                ) from exc
+            unit = "ampere"
+            expression = f"I({branch.component_name})"
+        records.append(
+            {
+                "directive": command,
+                "expression": expression,
+                "value": _observable_record(value, unit),
+            }
+        )
+    return records
 
 
 def solve_ac_sweep(
@@ -189,9 +257,9 @@ def solve_ac_sweep(
 ) -> dict[str, Any]:
     """Solve each AC point, validate it, and calculate node-voltage transfer."""
     input_node, output_node = _resolve_observable_nodes(circuit, input_node, output_node)
-    if input_node not in {node.id for node in circuit.nodes}:
+    if input_node is not None and input_node not in {node.id for node in circuit.nodes}:
         raise ACSweepError(f"Input node {input_node!r} is not present in the circuit")
-    if output_node not in {node.id for node in circuit.nodes}:
+    if output_node is not None and output_node not in {node.id for node in circuit.nodes}:
         raise ACSweepError(f"Output node {output_node!r} is not present in the circuit")
     if input_node == circuit.reference_node:
         raise ACSweepError("Input node cannot be the reference node")
@@ -221,39 +289,45 @@ def solve_ac_sweep(
                 points.append(point)
                 continue
 
-            node_order = tableau["unknown_order"]["node_voltage"]
-            vin = _node_voltage(solution, node_order, input_node)
-            vout = _node_voltage(solution, node_order, output_node)
-            if abs(vin) == 0.0:
-                point["status"] = "FAIL"
-                point["error"] = (
-                    f"La tensión de entrada en el nodo {input_node!r} es cero; "
-                    "H(jw)=Vout/Vin no está definida."
-                )
-                points.append(point)
-                continue
+            point["measurements"] = _measurement_records(
+                solution,
+                circuit,
+                _requested_observables(circuit),
+            )
+            if input_node is not None and output_node is not None:
+                node_order = tableau["unknown_order"]["node_voltage"]
+                vin = _node_voltage(solution, node_order, input_node)
+                vout = _node_voltage(solution, node_order, output_node)
+                if abs(vin) == 0.0:
+                    point["status"] = "FAIL"
+                    point["error"] = (
+                        f"La tensión de entrada en el nodo {input_node!r} es cero; "
+                        "H(jw)=Vout/Vin no está definida."
+                    )
+                    points.append(point)
+                    continue
 
-            transfer = vout / vin
-            magnitude = float(abs(transfer))
-            gain_db = (
-                float(20.0 * math.log10(magnitude))
-                if magnitude > 0.0
-                else None
-            )
-            phase_deg = (
-                float(np.degrees(np.angle(transfer)))
-                if magnitude > 0.0
-                else None
-            )
-            point["input_voltage"] = _observable_record(vin, "volt")
-            point["output_voltage"] = _observable_record(vout, "volt")
-            point["transfer_function"] = _observable_record(transfer, "dimensionless")
-            point["gain_db"] = gain_db
-            point["phase_deg"] = phase_deg
-            if magnitude == 0.0:
-                point["observable_warning"] = (
-                    "H(jw)=0: la ganancia en dB y la fase no están definidas."
+                transfer = vout / vin
+                magnitude = float(abs(transfer))
+                gain_db = (
+                    float(20.0 * math.log10(magnitude))
+                    if magnitude > 0.0
+                    else None
                 )
+                phase_deg = (
+                    float(np.degrees(np.angle(transfer)))
+                    if magnitude > 0.0
+                    else None
+                )
+                point["input_voltage"] = _observable_record(vin, "volt")
+                point["output_voltage"] = _observable_record(vout, "volt")
+                point["transfer_function"] = _observable_record(transfer, "dimensionless")
+                point["gain_db"] = gain_db
+                point["phase_deg"] = phase_deg
+                if magnitude == 0.0:
+                    point["observable_warning"] = (
+                        "H(jw)=0: la ganancia en dB y la fase no están definidas."
+                    )
             points.append(point)
         except (
             ACSweepError,
@@ -278,7 +352,11 @@ def solve_ac_sweep(
         "circuit_signature": circuit_signature(circuit),
         "analysis": "AC",
         "sweep": sweep_kind,
-        "transfer_definition": f"V(N{output_node}) / V(N{input_node})",
+        "transfer_definition": (
+            f"V(N{output_node}) / V(N{input_node})"
+            if input_node is not None and output_node is not None
+            else None
+        ),
         "input_node": input_node,
         "output_node": output_node,
         "reference_node": circuit.reference_node,
@@ -295,18 +373,18 @@ def solve_ac_sweep(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Solve a validated Tableau AC sweep and compute Vout/Vin"
+        description="Solve a validated Tableau AC sweep and requested measurements"
     )
     parser.add_argument("circuit_json", help="Circuit JSON from build_circuit_model.py")
     parser.add_argument("incidence_json", help="Incidence JSON from build_incidence_matrix.py")
     parser.add_argument("-o", "--output", required=True, help="AC sweep results JSON")
     parser.add_argument(
         "--input-node",
-        help="Input voltage node measured to ground; defaults to the first node in .PROBE AC",
+        help="Input voltage node measured to ground; defaults to .PRINT/.PROBE AC order",
     )
     parser.add_argument(
         "--output-node",
-        help="Output voltage node measured to ground; defaults to the second node in .PROBE AC",
+        help="Output voltage node measured to ground; defaults to .PRINT/.PROBE AC order",
     )
     parser.add_argument(
         "--frequency",

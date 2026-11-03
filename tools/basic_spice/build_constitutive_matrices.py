@@ -58,10 +58,10 @@ def build_constitutive_matrices(
     circuit: Circuit,
     stamps_data: dict[str, Any],
 ) -> dict[str, Any]:
-    """Build diagonal constitutive matrices in circuit branch order.
+    """Build branch constitutive matrices in circuit branch order.
 
-    The resulting relation is ``Y @ Vb + Z @ I = W``. Each row represents
-    one branch equation; its metadata retains the source and equation trace.
+    The resulting relation is ``Y @ Vb + Z @ I + Cn @ Vn = W``. ``Cn``
+    contains control-node terms for voltage-controlled voltage sources.
     """
     if stamps_data.get("schema_version") != "1.0":
         raise ConstitutiveMatrixError(
@@ -109,6 +109,9 @@ def build_constitutive_matrices(
     size = len(branches)
     y_matrix = np.zeros((size, size), dtype=complex)
     z_matrix = np.zeros((size, size), dtype=complex)
+    node_order = [node.id for node in circuit.nodes if not node.is_reference]
+    node_indices = {node: index for index, node in enumerate(node_order)}
+    node_coupling = np.zeros((size, len(node_order)), dtype=complex)
     w_vector = np.zeros(size, dtype=complex)
     equation_rows: list[dict[str, Any]] = []
     seen_branch_ids: set[str] = set()
@@ -126,6 +129,10 @@ def build_constitutive_matrices(
             "branch_id": branch.id,
             "component_name": branch.component_name,
             "element_type": branch.element_type,
+            "source_kind": branch.source_kind,
+            "dc_value_si": branch.dc_value_si,
+            "control_node_plus": branch.control_node_plus,
+            "control_node_minus": branch.control_node_minus,
             "node_from": branch.node_from,
             "node_to": branch.node_to,
             "source_line": branch.source_line,
@@ -153,12 +160,32 @@ def build_constitutive_matrices(
         y_matrix[row_index, row_index] = y_value
         z_matrix[row_index, row_index] = z_value
         w_vector[row_index] = w_value
+        if branch.element_type == "E":
+            control_plus = branch.control_node_plus
+            control_minus = branch.control_node_minus
+            if (
+                control_plus not in node_indices
+                and control_plus != circuit.reference_node
+            ) or (
+                control_minus not in node_indices
+                and control_minus != circuit.reference_node
+            ):
+                raise ConstitutiveMatrixError(
+                    f"Controlled source {branch.component_name} references an unknown control node"
+                )
+            if control_plus != circuit.reference_node:
+                node_coupling[row_index, node_indices[control_plus]] -= branch.value_si
+            if control_minus != circuit.reference_node:
+                node_coupling[row_index, node_indices[control_minus]] += branch.value_si
         equation_rows.append(
             {
                 "row_index": row_index,
                 "branch_id": branch.id,
                 "component_name": branch.component_name,
                 "element_type": branch.element_type,
+                "source_kind": branch.source_kind,
+                "control_node_plus": branch.control_node_plus,
+                "control_node_minus": branch.control_node_minus,
                 "equation": equation,
                 "source_line": branch.source_line,
                 "line_number": branch.line_number,
@@ -180,13 +207,16 @@ def build_constitutive_matrices(
             "branch_current": expected_order,
         },
         "row_order": expected_order,
+        "node_order": node_order,
         "row_equations": equation_rows,
         "Y": _complex_matrix_records(y_matrix),
         "Z": _complex_matrix_records(z_matrix),
+        "node_coupling": _complex_matrix_records(node_coupling),
         "W": _complex_vector_records(w_vector),
         "shapes": {
             "Y": list(y_matrix.shape),
             "Z": list(z_matrix.shape),
+            "node_coupling": list(node_coupling.shape),
             "W": [size],
         },
         "row_units": {
