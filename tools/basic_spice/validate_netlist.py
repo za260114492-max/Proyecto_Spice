@@ -16,10 +16,10 @@ EXPECTED_UNITS = {
     "L": "henry",
     "V": "volt",
     "I": "ampere",
+    "E": "dimensionless",
 }
 PASSIVE_TYPES = {"R", "C", "L"}
 SOURCE_TYPES = {"V", "I"}
-ANALYSIS_DIRECTIVES = {"AC", "OP"}
 
 
 def _issue(
@@ -132,7 +132,7 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                     f"El elemento {component!r} tiene tipo no soportado: {kind!r}.",
                     line_number=line_number,
                     component=component,
-                    suggestion="Usa únicamente R, C, L, V o I en este MVP.",
+                    suggestion="Usa únicamente R, C, L, V, I o una fuente E controlada.",
                 )
             )
             continue
@@ -216,18 +216,60 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                 )
             )
 
-        if kind in SOURCE_TYPES:
-            source_kind = element.get("source_kind")
-            if not isinstance(source_kind, str) or source_kind not in {"DC", "AC"}:
+        if kind == "E":
+            control_plus = element.get("control_node_plus")
+            control_minus = element.get("control_node_minus")
+            if (
+                not isinstance(control_plus, str)
+                or not control_plus.strip()
+                or not isinstance(control_minus, str)
+                or not control_minus.strip()
+            ):
                 errors.append(
                     _issue(
-                        "INVALID_SOURCE_KIND",
-                        f"La fuente {component!r} debe indicar source_kind DC o AC.",
+                        "INVALID_CONTROL_NODES",
+                        f"La fuente controlada {component!r} requiere dos nodos de control.",
                         line_number=line_number,
                         component=component,
                     )
                 )
-            if source_kind == "AC":
+            else:
+                control_plus = control_plus.strip()
+                control_minus = control_minus.strip()
+                nodes.update((control_plus, control_minus))
+                if control_plus == control_minus:
+                    errors.append(
+                        _issue(
+                            "INVALID_CONTROL_NODES",
+                            f"Los nodos de control de {component!r} deben ser distintos.",
+                            line_number=line_number,
+                            component=component,
+                            node=control_plus,
+                        )
+                    )
+
+        if kind in SOURCE_TYPES:
+            source_kind = element.get("source_kind")
+            if not isinstance(source_kind, str) or source_kind not in {"DC", "AC", "DC_AC"}:
+                errors.append(
+                    _issue(
+                        "INVALID_SOURCE_KIND",
+                        f"La fuente {component!r} debe indicar source_kind DC, AC o DC_AC.",
+                        line_number=line_number,
+                        component=component,
+                    )
+                )
+            dc_value = element.get("dc_value_si")
+            if dc_value is not None and not _finite_number(dc_value):
+                errors.append(
+                    _issue(
+                        "INVALID_DC_VALUE",
+                        f"El valor DC de {component!r} debe ser finito.",
+                        line_number=line_number,
+                        component=component,
+                    )
+                )
+            if isinstance(source_kind, str) and source_kind in {"AC", "DC_AC"}:
                 magnitude = element.get("ac_magnitude")
                 phase = element.get("ac_phase_deg")
                 if not _finite_number(magnitude) or magnitude < 0:
@@ -275,8 +317,8 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                 )
             )
 
-    analysis_directives: list[dict[str, Any]] = []
-    probe_directive_count = 0
+    ac_directive_count = 0
+    op_directive_count = 0
     end_directives = 0
     for index, directive in enumerate(directives):
         if not isinstance(directive, dict):
@@ -290,72 +332,129 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
         command = directive.get("command")
         line_number = directive.get("line_number")
         line_number = line_number if isinstance(line_number, int) and line_number > 0 else None
-        if isinstance(command, str) and command in ANALYSIS_DIRECTIVES:
-            analysis_directives.append(directive)
-            if command == "AC":
-                points = directive.get("points")
-                start = directive.get("f_start_hz")
-                stop = directive.get("f_stop_hz")
-                if (
-                    not isinstance(directive.get("sweep"), str)
-                    or directive.get("sweep") not in {"LIN", "DEC"}
-                    or not isinstance(points, int)
-                    or isinstance(points, bool)
-                    or points <= 0
-                    or not _finite_number(start)
-                    or not _finite_number(stop)
-                    or start <= 0
-                    or stop < start
-                ):
-                    errors.append(
-                        _issue(
-                            "INVALID_AC_DIRECTIVE",
-                            "La directiva .AC tiene barrido o rango de frecuencias inválido.",
-                            line_number=line_number,
-                            suggestion=(
-                                "Usa .AC LIN|DEC puntos f_inicio f_fin con valores "
-                                "positivos y f_fin >= f_inicio."
-                            ),
-                        )
-                    )
-        elif command == "PROBE":
-            probe_directive_count += 1
-            probe_nodes = directive.get("voltage_nodes")
+        if command == "AC":
+            ac_directive_count += 1
+            points = directive.get("points")
+            start = directive.get("f_start_hz")
+            stop = directive.get("f_stop_hz")
             if (
-                directive.get("analysis") != "AC"
-                or not isinstance(probe_nodes, list)
-                or len(probe_nodes) != 2
-                or any(not isinstance(node, str) or not node.strip() for node in probe_nodes)
+                not isinstance(directive.get("sweep"), str)
+                or directive.get("sweep") not in {"LIN", "DEC"}
+                or not isinstance(points, int)
+                or isinstance(points, bool)
+                or points <= 0
+                or not _finite_number(start)
+                or not _finite_number(stop)
+                or start <= 0
+                or stop < start
             ):
                 errors.append(
                     _issue(
-                        "INVALID_PROBE_DIRECTIVE",
-                        "La directiva .PROBE debe contener exactamente dos nodos de voltaje AC.",
+                        "INVALID_AC_DIRECTIVE",
+                        "La directiva .AC tiene barrido o rango de frecuencias inválido.",
                         line_number=line_number,
-                        suggestion="Usa .PROBE AC V(nodo_entrada) V(nodo_salida).",
+                        suggestion=(
+                            "Usa .AC LIN|DEC puntos f_inicio f_fin con valores "
+                            "positivos y f_fin >= f_inicio."
+                        ),
                     )
                 )
-            else:
-                for node in probe_nodes:
-                    if node not in nodes:
+        elif isinstance(command, str) and command in {"PROBE", "PRINT"}:
+            observables = directive.get("observables")
+            if observables is None and command == "PROBE":
+                observables = [
+                    {"kind": "V", "node": node}
+                    for node in directive.get("voltage_nodes", [])
+                ]
+            if (
+                directive.get("analysis") != "AC"
+                or not isinstance(observables, list)
+                or not observables
+            ):
+                errors.append(
+                    _issue(
+                        f"INVALID_{command}_DIRECTIVE",
+                        f"La directiva .{command} debe contener mediciones AC.",
+                        line_number=line_number,
+                        suggestion=f"Usa .{command} AC con V(nodo) o I(componente).",
+                    )
+                )
+                continue
+            for observable in observables:
+                if not isinstance(observable, dict):
+                    errors.append(
+                        _issue(
+                            f"INVALID_{command}_OBSERVABLE",
+                            f"La directiva .{command} contiene una medición inválida.",
+                            line_number=line_number,
+                        )
+                    )
+                    continue
+                kind = observable.get("kind")
+                if kind == "V":
+                    node = observable.get("node")
+                    if not isinstance(node, str) or not node.strip():
+                        errors.append(
+                            _issue(
+                                f"INVALID_{command}_OBSERVABLE",
+                                f"La medición de tensión de .{command} no tiene nodo.",
+                                line_number=line_number,
+                            )
+                        )
+                    elif node not in nodes:
                         errors.append(
                             _issue(
                                 "UNKNOWN_PROBE_NODE",
-                                f"La directiva .PROBE referencia el nodo inexistente {node!r}.",
+                                f"La directiva .{command} referencia el nodo inexistente {node!r}.",
                                 line_number=line_number,
                                 node=node,
                                 suggestion="Usa nodos presentes en los componentes del circuito.",
                             )
                         )
-                if probe_nodes[0] == probe_nodes[1]:
+                elif kind == "I":
+                    component = observable.get("component")
+                    if (
+                        not isinstance(component, str)
+                        or component.strip().upper() not in names
+                    ):
+                        errors.append(
+                            _issue(
+                                "UNKNOWN_PROBE_COMPONENT",
+                                f"La directiva .{command} referencia un componente inexistente: {component!r}.",
+                                line_number=line_number,
+                                component=component if isinstance(component, str) else None,
+                            )
+                        )
+                else:
                     errors.append(
                         _issue(
-                            "INVALID_PROBE_NODES",
-                            "Los nodos de entrada y salida de .PROBE deben ser distintos.",
+                            f"INVALID_{command}_OBSERVABLE",
+                            f"Tipo de medición no soportado en .{command}: {kind!r}.",
                             line_number=line_number,
-                            suggestion="Indica primero el nodo de entrada y después el nodo de salida.",
                         )
                     )
+        elif command == "OPTION":
+            options = directive.get("options")
+            if (
+                not isinstance(options, dict)
+                or not options
+                or any(
+                    not isinstance(key, str)
+                    or not key.strip()
+                    or not isinstance(value, str)
+                    or not value.strip()
+                    for key, value in options.items()
+                )
+            ):
+                errors.append(
+                    _issue(
+                        "INVALID_OPTION_DIRECTIVE",
+                        "La directiva .OPTION debe contener ajustes NAME=VALUE.",
+                        line_number=line_number,
+                    )
+                )
+        elif command == "OP":
+            op_directive_count += 1
         elif command == "END":
             end_directives += 1
         else:
@@ -364,15 +463,23 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                     "UNSUPPORTED_DIRECTIVE",
                     f"Directiva no soportada en los datos analizados: {command!r}.",
                     line_number=line_number,
-                    suggestion="Usa únicamente .OP, .AC, .PROBE AC y .END.",
+                    suggestion="Usa .OP, .AC, .PROBE/.PRINT AC, .OPTION y .END.",
                 )
             )
-    if probe_directive_count > 1:
+    if ac_directive_count > 1:
         errors.append(
             _issue(
-                "DUPLICATE_PROBE",
-                "Se encontró más de una directiva .PROBE.",
-                suggestion="Conserva una sola directiva .PROBE AC.",
+                "DUPLICATE_AC",
+                "Se encontró más de una directiva .AC.",
+                suggestion="Conserva una sola directiva .AC.",
+            )
+        )
+    if op_directive_count > 1:
+        errors.append(
+            _issue(
+                "DUPLICATE_OP",
+                "Se encontró más de una directiva .OP.",
+                suggestion="Conserva una sola directiva .OP.",
             )
         )
     if end_directives > 1:
@@ -383,18 +490,6 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                 suggestion="Conserva una sola directiva .END al final del netlist.",
             )
         )
-    if len(analysis_directives) > 1:
-        errors.append(
-            _issue(
-                "CONFLICTING_ANALYSES",
-                (
-                    "Se encontraron varias directivas de análisis (.OP/.AC); "
-                    "el flujo no selecciona una automáticamente."
-                ),
-                suggestion="Deja una sola directiva de análisis por netlist.",
-            )
-        )
-
     parser_warnings = parsed.get("warnings", [])
     if not isinstance(parser_warnings, list):
         parser_warnings = []

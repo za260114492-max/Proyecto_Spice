@@ -13,10 +13,21 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator, StrMethodFormatter
 
 
 class PlotResultsError(ValueError):
     """Raised when AC plot inputs are malformed or cannot be aligned."""
+
+
+def _configure_bode_axes(axis: Any) -> None:
+    axis.xaxis.set_major_locator(MultipleLocator(100))
+    axis.xaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
+    axis.yaxis.set_minor_locator(AutoMinorLocator(5))
+    axis.tick_params(axis="both", which="major", length=6, width=0.8)
+    axis.tick_params(axis="both", which="minor", length=3, width=0.6)
+    axis.grid(which="major", axis="both", alpha=0.35, linewidth=0.8)
+    axis.grid(which="minor", axis="both", alpha=0.12, linewidth=0.45)
 
 
 def _finite_number(value: Any, label: str) -> float:
@@ -139,15 +150,15 @@ def plot_results(
     plt.rcParams.update(
         {
             "font.size": 10,
-            "axes.grid": True,
-            "grid.alpha": 0.3,
             "figure.dpi": 120,
             "savefig.dpi": 160,
         }
     )
 
     fig, axis = plt.subplots(figsize=(8, 5))
-    axis.semilogx(frequencies, gains, marker="o", markersize=3, label="Agente")
+    axis.plot(frequencies, gains, marker="o", markersize=3, label="Agente")
+    axis.set_xlim(frequencies[0], frequencies[-1])
+    _configure_bode_axes(axis)
     if reference is not None:
         axis.semilogx(
             frequencies,
@@ -173,7 +184,9 @@ def plot_results(
     plt.close(fig)
 
     fig, axis = plt.subplots(figsize=(8, 5))
-    axis.semilogx(frequencies, phases, marker="o", markersize=3, label="Agente")
+    axis.plot(frequencies, phases, marker="o", markersize=3, label="Agente")
+    axis.set_xlim(frequencies[0], frequencies[-1])
+    _configure_bode_axes(axis)
     if reference is not None:
         axis.semilogx(
             frequencies,

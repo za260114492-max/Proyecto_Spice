@@ -116,7 +116,7 @@ class BasicSpiceWorkflowTests(unittest.TestCase):
         )
         self.assertIn("**Estado del reporte: PASS.**", report)
         self.assertIn("## 12. Validaciones", report)
-        self.assertIn("La herramienta de barrido no exporta corrientes de rama", report)
+        self.assertIn("Mediciones solicitadas", report)
         self.assertIn("| 10 |", report)
 
 

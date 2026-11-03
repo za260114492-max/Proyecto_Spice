@@ -23,7 +23,10 @@ Soportar inicialmente:
 - `L`: inductor.
 - `I`: fuente independiente de corriente DC o AC.
 - `V`: fuente independiente de voltaje DC o AC.
+- `E`: fuente de voltaje controlada por voltaje (VCVS).
 - Directivas `.AC`, `.OP` y `.END` en el subconjunto documentado.
+- Directivas `.PRINT AC` y `.PROBE AC` para `V(nodo)` e `I(componente)`.
+- Directiva `.OPTION` con ajustes `NAME=VALUE`, conservados como metadatos.
 - Comentarios cuyo primer carácter significativo es `*`.
 
 No soportar inicialmente subcircuitos, modelos de semiconductores, parámetros, expresiones arbitrarias, análisis transitorio general ni dialectos propietarios.
@@ -36,10 +39,16 @@ C<id> <n+> <n-> <value>
 L<id> <n+> <n-> <value>
 I<id> <n+> <n-> DC <value>
 I<id> <n+> <n-> AC <magnitude> [phase_deg]
+I<id> <n+> <n-> DC <value> AC <magnitude> [phase_deg]
 V<id> <n+> <n-> DC <value>
 V<id> <n+> <n-> AC <magnitude> [phase_deg]
+V<id> <n+> <n-> DC <value> AC <magnitude> [phase_deg]
+E<id> <n+> <n-> <nc+> <nc-> <gain>
 .AC LIN <points> <f_start> <f_stop>
 .AC DEC <points_per_decade> <f_start> <f_stop>
+.PRINT AC V(node) I(component) ...
+.PROBE AC V(node) I(component) ...
+.OPTION NAME=VALUE ...
 .OP
 .END
 ```
@@ -57,13 +66,17 @@ V<id> <n+> <n-> AC <magnitude> [phase_deg]
 9. Crear objetos estructurados; no construir matrices todavía.
 10. Emitir errores con número de línea, token y corrección sugerida.
 
+`.OP` puede coexistir con `.AC`; el flujo de barrido ejecuta `.AC`. `.OPTION`
+se valida y conserva, pero no activa funciones específicas de simuladores
+externos.
+
 ## Contrato de salida
 
-Cada elemento debe contener `name`, `type`, `node_from`, `node_to`, `value_si`, `unit`, `source_kind`, `ac_magnitude`, `ac_phase_deg`, `source_line` y `line_number`, según corresponda.
+Cada elemento debe contener `name`, `type`, `node_from`, `node_to`, `value_si`, `unit`, `source_kind`, `dc_value_si`, `ac_magnitude`, `ac_phase_deg`, `source_line` y `line_number`, según corresponda. Una `E` también contiene `control_node_plus` y `control_node_minus`.
 
 ## Reglas de decisión
 
-Si una línea usa un elemento no soportado, detener el análisis y reportarlo. No omitir silenciosamente. Si falta `.END`, emitir advertencia configurable; si falta tierra, emitir error. Si existen varias directivas de análisis incompatibles, solicitar una selección o detener el flujo.
+Si una línea usa un elemento no soportado, detener el análisis y reportarlo. No omitir silenciosamente. Si falta `.END`, emitir advertencia configurable; si falta tierra, emitir error. No aceptar más de una directiva `.AC`. Las mediciones de corriente usan identificadores existentes y las de tensión, nodos existentes.
 
 ## Tools relacionadas
 

@@ -130,6 +130,14 @@ def validate_tableau_solution(
     ):
         raise SolutionValidationError("A, Y, Z, or W dimensions are inconsistent")
     node_count = a.shape[0]
+    if "node_coupling" in blocks:
+        node_coupling = _matrix(blocks.get("node_coupling"), "node_coupling")
+    else:
+        node_coupling = np.zeros((branch_count, node_count), dtype=complex)
+    if node_coupling.shape != (branch_count, node_count):
+        raise SolutionValidationError(
+            "node_coupling dimensions are inconsistent with the branch and node counts"
+        )
     expected_size = 2 * branch_count + node_count
     if matrix.shape != (expected_size, expected_size):
         raise SolutionValidationError(
@@ -186,10 +194,11 @@ def validate_tableau_solution(
             rtol,
         ),
         "constitutive": _metric(
-            y @ vb + z @ currents - w,
+            y @ vb + z @ currents + node_coupling @ node_voltages - w,
             float(
                 np.linalg.norm(y @ vb)
                 + np.linalg.norm(z @ currents)
+                + np.linalg.norm(node_coupling @ node_voltages)
                 + np.linalg.norm(w)
             ),
             atol,

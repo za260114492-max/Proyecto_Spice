@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "source_name": "input.cir",
+  "status": "PASS",
+  "element_count": 8,
+  "node_count": 6,
+  "errors": [],
+  "warnings": []
+}

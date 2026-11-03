@@ -31,7 +31,10 @@ class ConstitutiveMatrixTests(unittest.TestCase):
 
         self.assertEqual(result["equation_convention"], "Y @ Vb + Z @ I = W")
         self.assertEqual(result["row_order"], ["B1", "B2", "B3", "B4", "B5"])
-        self.assertEqual(result["shapes"], {"Y": [5, 5], "Z": [5, 5], "W": [5]})
+        self.assertEqual(
+            result["shapes"],
+            {"Y": [5, 5], "Z": [5, 5], "node_coupling": [5, 2], "W": [5]},
+        )
         self.assertEqual(
             [row["component_name"] for row in result["row_equations"]],
             ["R1", "C1", "L1", "I1", "V1"],

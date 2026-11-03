@@ -18,7 +18,7 @@ Usar cuando se soliciten Y, Z, W, T, X; cuando existan fuentes ideales; o cuando
 
 ```text
 A.T @ Vn - Vb = 0
-Y @ Vb + Z @ I = W
+Y @ Vb + Z @ I + node_coupling @ Vn = W
 A @ I = 0
 ```
 
@@ -26,7 +26,7 @@ Con el orden `X = [Vb; I; Vn]`:
 
 ```text
 T = [[I, 0, -A.T],
-     [Y, Z,  0   ],
+     [Y, Z,  node_coupling],
      [0, A,  0   ]]
 Wp = [0; W; 0]
 T @ X = Wp
@@ -36,7 +36,7 @@ T @ X = Wp
 
 1. Confirmar `b` ramas y `n` nodos no de referencia.
 2. Verificar A de dimensión `n x b`.
-3. Construir Y, Z y W con `component-constitutive-models`.
+3. Construir Y, Z, W y `node_coupling` con `component-constitutive-models`.
 4. Etiquetar filas y columnas con ramas.
 5. Ensamblar T de dimensión `(2b+n) x (2b+n)`.
 6. Crear mapa de índices para Vb, I y Vn.
@@ -46,7 +46,8 @@ T @ X = Wp
 
 ## Trazabilidad
 
-Cada fila de Y/Z/W debe registrar componente, rama, ecuación constitutiva y unidad. Cada bloque de T debe identificarse en el reporte.
+Cada fila de Y/Z/W y `node_coupling` debe registrar componente, rama,
+ecuación constitutiva y unidad. Cada bloque de T debe identificarse en el reporte.
 
 ## Tools relacionadas
 
@@ -54,11 +55,14 @@ Cada fila de Y/Z/W debe registrar componente, rama, ecuación constitutiva y uni
 
 ## Validaciones
 
-Dimensiones, orden de ramas, `||A I||`, `||Vb-A.T Vn||`, `||Y Vb+Z I-W||` y `||T X-Wp||`.
+Dimensiones, orden de ramas, `||A I||`, `||Vb-A.T Vn||`,
+`||Y Vb+Z I+node_coupling Vn-W||` y `||T X-Wp||`.
 
 ## Elementos multiterminales
 
-Representarlos sólo mediante bloques aprobados y ramas auxiliares documentadas. Relacionar explícitamente ramas de entrada y salida cuando el modelo lo requiera.
+Representarlos sólo mediante bloques aprobados y ramas auxiliares documentadas.
+Para una fuente VCVS, los nodos de control se incluyen en el vector Vn y sus
+coeficientes se registran en `node_coupling`.
 
 ## Ejemplo
 
@@ -66,7 +70,8 @@ Una fuente ideal de voltaje usa `Y=1`, `Z=0`, `W=E` para su ecuación de rama. S
 
 ## Errores
 
-No ensamblar T si Y/Z/W no tienen dimensión b x b, si W no tiene b entradas o si las etiquetas no coinciden.
+No ensamblar T si Y/Z no tienen dimensión b x b, `node_coupling` no tiene
+dimensión b x n, W no tiene b entradas o si las etiquetas no coinciden.
 
 ## Criterio de terminación
 

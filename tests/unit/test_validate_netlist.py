@@ -38,11 +38,12 @@ class ValidateNetlistTests(unittest.TestCase):
         self.assertEqual(result["status"], "FAIL")
         self.assertIn("UNKNOWN_PROBE_NODE", {error["code"] for error in result["errors"]})
 
-    def test_malformed_probe_directive_is_rejected(self) -> None:
-        from parse_netlist import NetlistParseError
-
-        with self.assertRaises(NetlistParseError):
-            parse_netlist_text("R1 1 0 1k\n.PROBE AC V(1)\n.END\n")
+    def test_single_probe_observable_is_valid(self) -> None:
+        parsed = parse_netlist_text("R1 1 0 1k\n.PROBE AC V(1)\n.END\n")
+        result = validate_netlist(parsed)
+        self.assertEqual(result["status"], "PASS")
+        probe = next(d for d in parsed["directives"] if d["command"] == "PROBE")
+        self.assertEqual(probe["voltage_nodes"], ["1"])
 
     def test_missing_ground_fails(self) -> None:
         parsed = parse_netlist_text("R1 1 2 1k\n.END\n")
@@ -56,10 +57,28 @@ class ValidateNetlistTests(unittest.TestCase):
         self.assertEqual(result["status"], "FAIL")
         self.assertIn("DISCONNECTED_NODE", {error["code"] for error in result["errors"]})
 
-    def test_conflicting_analysis_directives_fail(self) -> None:
-        parsed = parse_netlist_text("R1 1 0 1k\n.OP\n.AC LIN 2 1 10\n.END\n")
+    def test_duplicate_ac_directives_fail(self) -> None:
+        parsed = parse_netlist_text(
+            "R1 1 0 1k\n.AC LIN 2 1 10\n.AC LIN 2 1 10\n.END\n"
+        )
         result = validate_netlist(parsed)
-        self.assertIn("CONFLICTING_ANALYSES", {error["code"] for error in result["errors"]})
+        self.assertIn("DUPLICATE_AC", {error["code"] for error in result["errors"]})
+
+    def test_op_and_ac_directives_can_coexist(self) -> None:
+        parsed = parse_netlist_text(
+            "V1 1 0 DC 0 AC 1\nR1 1 0 1k\n.OP\n.AC LIN 2 1 10\n.END\n"
+        )
+        self.assertEqual(validate_netlist(parsed)["status"], "PASS")
+
+    def test_print_probe_current_and_option_directives_pass(self) -> None:
+        parsed = parse_netlist_text(
+            "V1 1 0 DC 0 AC 10m\nR1 1 0 1k\n"
+            ".PRINT AC V(1) I(R1)\n.PROBE AC I(R1)\n.OPTION POST=1\n"
+            ".AC DEC 10 10 1k\n.OP\n.END\n"
+        )
+        result = validate_netlist(parsed)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["errors"], [])
 
     def test_duplicate_names_in_malformed_parsed_data_fail(self) -> None:
         parsed = parse_netlist_text("R1 1 0 1k\nR2 1 0 2k\n.END\n")

@@ -131,6 +131,8 @@ def build_tableau_system(
         raise TableauAssemblyError("Constitutive analysis must be 'DC' or 'AC'")
     if constitutive_data.get("row_order") != branch_order:
         raise TableauAssemblyError("Constitutive row order does not match circuit branch order")
+    if constitutive_data.get("node_order", node_order) != node_order:
+        raise TableauAssemblyError("Constitutive node order does not match circuit node order")
     expected_unknown_order = {
         "branch_voltage": branch_order,
         "branch_current": branch_order,
@@ -141,6 +143,17 @@ def build_tableau_system(
     y = _matrix(constitutive_data.get("Y"), "Y")
     z = _matrix(constitutive_data.get("Z"), "Z")
     w = _vector(constitutive_data.get("W"), "W")
+    if "node_coupling" in constitutive_data:
+        node_coupling = _matrix(
+            constitutive_data.get("node_coupling"),
+            "node_coupling",
+        )
+    elif any(branch.element_type == "E" for branch in branches):
+        raise TableauAssemblyError(
+            "Controlled voltage sources require node_coupling matrix data"
+        )
+    else:
+        node_coupling = np.zeros((branch_count, node_count), dtype=complex)
     expected_matrix_shape = (branch_count, branch_count)
     if y.shape != expected_matrix_shape or z.shape != expected_matrix_shape:
         raise TableauAssemblyError(
@@ -148,11 +161,18 @@ def build_tableau_system(
         )
     if w.shape != (branch_count,):
         raise TableauAssemblyError(f"W must have shape {(branch_count,)}")
-    if constitutive_data.get("shapes") != {
+    if node_coupling.shape != (branch_count, node_count):
+        raise TableauAssemblyError(
+            f"node_coupling must have shape {(branch_count, node_count)}"
+        )
+    expected_shapes = {
         "Y": list(y.shape),
         "Z": list(z.shape),
         "W": [branch_count],
-    }:
+    }
+    if "node_coupling" in constitutive_data:
+        expected_shapes["node_coupling"] = list(node_coupling.shape)
+    if constitutive_data.get("shapes") != expected_shapes:
         raise TableauAssemblyError("Constitutive shape metadata does not match matrix data")
     row_equations = constitutive_data.get("row_equations")
     if not isinstance(row_equations, list) or len(row_equations) != branch_count:
@@ -166,6 +186,10 @@ def build_tableau_system(
                 ("row_index", branch.index),
                 ("branch_id", branch.id),
                 ("component_name", branch.component_name),
+                ("element_type", branch.element_type),
+                ("source_kind", branch.source_kind),
+                ("control_node_plus", branch.control_node_plus),
+                ("control_node_minus", branch.control_node_minus),
                 ("source_line", branch.source_line),
                 ("line_number", branch.line_number),
             )
@@ -185,9 +209,10 @@ def build_tableau_system(
     tableau[vb_slice, vb_slice] = np.eye(branch_count)
     tableau[vb_slice, node_slice] = -a.T
 
-    # Constitutive equations: Y @ Vb + Z @ I = W
+    # Constitutive equations: Y @ Vb + Z @ I + node_coupling @ Vn = W
     tableau[current_slice, vb_slice] = y
     tableau[current_slice, current_slice] = z
+    tableau[current_slice, node_slice] = node_coupling
     rhs[current_slice] = w
 
     # KCL: A @ I = 0
@@ -229,13 +254,14 @@ def build_tableau_system(
         },
         "block_equations": {
             "KVL": "Vb - A.T @ Vn = 0",
-            "constitutive": "Y @ Vb + Z @ I = W",
+            "constitutive": "Y @ Vb + Z @ I + node_coupling @ Vn = W",
             "KCL": "A @ I = 0",
         },
         "blocks": {
             "A_reduced": a.tolist(),
             "Y": _matrix_records(y),
             "Z": _matrix_records(z),
+            "node_coupling": _matrix_records(node_coupling),
             "W": _vector_records(w),
         },
         "T": _matrix_records(tableau),

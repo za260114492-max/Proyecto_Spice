@@ -1,0 +1,24 @@
+* AC Analysis of Op-Amp Circuit (Ideal Op-Amps)
+* Sinusoidal Input: VL = 10mV
+* Component Values: R1=1k, R2=3.3k, R3=3.3k, R5=1k, C4=1uF
+
+V1 1 0 DC 0 AC 10m
+
+R1 1 2 1k
+R2 2 3 3.3k
+R3 3 4 3.3k
+R5 5 0 1k
+C4 4 5 1u
+
+* Ideal Op-Amps modeled as E-controlled sources
+E_A1 4 0 1 3 1e6
+E_A2 2 0 5 3 1e6
+
+.AC DEC 100 10 1k
+* Print voltages and currents
+.PRINT AC V(1) V(5) I(R5) I(V1)
+.PROBE AC V(5) I(R5)
+.PRINT AC I(V1) I(R5) V(5)
+.OPTION POST=1
+.OP
+.END

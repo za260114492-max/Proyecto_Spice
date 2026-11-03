@@ -8,14 +8,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "basic_spice"))
 
-from build_circuit_model import build_circuit
+from build_circuit_model import build_circuit, circuit_to_dict
 from build_incidence_matrix import build_incidence_matrices
+from generate_report import generate_report
 from parse_netlist import parse_netlist_text
 from solve_ac_sweep import (
     ACSweepError,
     frequencies_from_directive,
     solve_ac_sweep,
 )
+from stamp_elements import build_element_stamps
+from validate_netlist import validate_netlist
 
 
 class ACFrequencyVectorTests(unittest.TestCase):
@@ -65,6 +68,53 @@ class ACFrequencyVectorTests(unittest.TestCase):
 
 
 class ACSweepTests(unittest.TestCase):
+    def test_active_filter_netlist_supports_controlled_source_and_current_probes(self) -> None:
+        netlist_text = (
+            "V1 1 0 DC 0 AC 10m\n"
+            "C1 1 2 1u\nC2 2 3 1u\nR1 2 5 1k\nR2 3 0 1k\n"
+            "R5 5 4 1k\nR3 4 0 1k\nE_A1 5 0 3 4 1e6\n"
+            ".AC DEC 100 10 1k\n"
+            ".PRINT AC V(1) V(5) I(R5) I(V1)\n"
+            ".PROBE AC V(5) I(R5)\n.OPTION POST=1\n.OP\n.END\n"
+        )
+        parsed = parse_netlist_text(netlist_text)
+        self.assertEqual(validate_netlist(parsed)["status"], "PASS")
+        source = next(element for element in parsed["elements"] if element["name"] == "V1")
+        self.assertEqual(source["source_kind"], "DC_AC")
+        self.assertEqual(source["dc_value_si"], 0.0)
+        self.assertEqual(source["ac_magnitude"], 0.01)
+
+        circuit = build_circuit(parsed)
+        dc_source = next(
+            stamp for stamp in build_element_stamps(circuit, "DC")["stamps"]
+            if stamp["component_name"] == "V1"
+        )
+        self.assertEqual(dc_source["W"], {"real": 0.0, "imag": 0.0})
+        result = solve_ac_sweep(circuit, build_incidence_matrices(circuit))
+
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["frequency_count"], 201)
+        self.assertEqual(result["input_node"], "1")
+        self.assertEqual(result["output_node"], "5")
+        first = result["points"][0]
+        self.assertEqual(first["status"], "PASS")
+        self.assertAlmostEqual(first["input_voltage"]["real"], 0.01)
+        r5_current = next(
+            item for item in first["measurements"]
+            if item["directive"] == "PRINT" and item["expression"] == "I(R5)"
+        )
+        self.assertEqual(r5_current["value"]["unit"], "ampere")
+        self.assertGreater(r5_current["value"]["magnitude"], 0.0)
+        self.assertTrue(all(point["validation"]["status"] == "PASS" for point in result["points"]))
+        report = generate_report(
+            parsed,
+            circuit_to_dict(circuit),
+            build_incidence_matrices(circuit),
+            netlist_text,
+            sweep=result,
+        )
+        self.assertIn("I(R5)=", report)
+
     def test_rc_lowpass_reports_validated_transfer_per_frequency(self) -> None:
         parsed = parse_netlist_text(
             "V1 1 0 AC 1 0\nR1 1 2 1k\nC1 2 0 1u\n"

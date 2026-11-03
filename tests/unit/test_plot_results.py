@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "basic_spice"))
 
 from build_circuit_model import build_circuit
@@ -14,11 +16,39 @@ from build_incidence_matrix import build_incidence_matrices
 from circuit_identity import circuit_signature
 from compare_reference import compare_reference
 from parse_netlist import parse_netlist_text
-from plot_results import PlotResultsError, plot_results
+from plot_results import PlotResultsError, _configure_bode_axes, plot_results
 from solve_ac_sweep import solve_ac_sweep
 
 
 class PlotResultsTests(unittest.TestCase):
+    def test_bode_axes_label_frequency_every_100_hz(self) -> None:
+        figure, axis = plt.subplots()
+        try:
+            axis.plot([100.0, 400.0], [0.0, 10.0])
+            axis.set_xlim(100.0, 400.0)
+            axis.set_ylim(0.0, 10.0)
+            _configure_bode_axes(axis)
+            figure.canvas.draw()
+
+            lower, upper = axis.get_xlim()
+            major_ticks = [
+                tick
+                for tick in axis.xaxis.get_majorticklocs()
+                if lower <= tick <= upper
+            ]
+            self.assertEqual(
+                major_ticks,
+                [float(frequency) for frequency in range(100, 401, 100)],
+            )
+            formatter = axis.xaxis.get_major_formatter()
+            self.assertEqual(
+                [formatter(tick, index) for index, tick in enumerate(major_ticks)],
+                [str(frequency) for frequency in range(100, 401, 100)],
+            )
+            self.assertGreaterEqual(len(axis.yaxis.get_minorticklocs()), 20)
+        finally:
+            plt.close(figure)
+
     def setUp(self) -> None:
         self.circuit = build_circuit(
             parse_netlist_text(
