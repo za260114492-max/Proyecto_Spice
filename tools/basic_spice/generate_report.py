@@ -289,6 +289,8 @@ def generate_report(
     invocation: str | None = None,
 ) -> str:
     """Render a report using supplied artifacts only; this function never solves."""
+    if graph is None:
+        raise ReportGenerationError("Oriented graph artifact is required for every report")
     source_name = circuit.get("source_name")
     if not isinstance(source_name, str) or not source_name:
         raise ReportGenerationError("Circuit source_name is required")
@@ -655,23 +657,22 @@ def generate_report(
             f"{_md(branch.get('element_type'))} | {_fmt_number(branch.get('value_si'))} | "
             f"{_md(branch.get('unit'))} |"
         )
-    lines.extend(["", "## 6. Grafo orientado", ""])
-    if graph is None:
-        lines.append("No se proporcionó el artefacto del grafo; no se reconstruye en el reporte.")
-    else:
-        lines.extend(
-            [
-                f"Conectado: `{_md(graph.get('is_connected'))}`.",
-                "",
-                "| Arista | Nodo inicial | Nodo final | Componente |",
-                "|---|---|---|---|",
-            ]
+    lines.extend(
+        [
+            "",
+            "## 6. Grafo orientado",
+            "",
+            f"Conectado: `{_md(graph.get('is_connected'))}`.",
+            "",
+            "| Arista | Nodo inicial | Nodo final | Componente |",
+            "|---|---|---|---|",
+        ]
+    )
+    for edge in graph.get("edges", []):
+        lines.append(
+            f"| {_md(edge.get('key'))} | N{_md(edge.get('node_from'))} | "
+            f"N{_md(edge.get('node_to'))} | {_md(edge.get('component'))} |"
         )
-        for edge in graph.get("edges", []):
-            lines.append(
-                f"| {_md(edge.get('key'))} | N{_md(edge.get('node_from'))} | "
-                f"N{_md(edge.get('node_to'))} | {_md(edge.get('component'))} |"
-            )
     lines.extend(
         [
             "",
@@ -886,7 +887,7 @@ def main() -> int:
     parser.add_argument("circuit_json", help="Normalized circuit model JSON")
     parser.add_argument("incidence_json", help="Incidence matrices JSON")
     parser.add_argument("-o", "--output", required=True, help="Markdown report output")
-    parser.add_argument("--graph-json", help="Optional oriented graph JSON")
+    parser.add_argument("--graph-json", required=True, help="Required oriented graph JSON")
     parser.add_argument("--stamps-json", help="Optional element stamps JSON")
     parser.add_argument("--constitutive-json", help="Optional Y/Z/W matrices JSON")
     systems = parser.add_mutually_exclusive_group()

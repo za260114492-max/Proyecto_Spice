@@ -1,0 +1,15 @@
+* Equivalente expandido de FiltroActivo_05112026; valores originales en filtro_activo_original.cir
+* RA=1.27k, RB=2.3k; 1/G1=RA, 1/G2=RB; C1=C2=0.1uF
+V1 1 0 DC 0 AC 1m
+C1 1 2 0.1u
+C2 2 3 0.1u
+R_G1 2 5 1.27k
+R_G2 3 0 2.3k
+R_B 5 4 2.3k
+R_A 4 0 1.27k
+E_A1 5 0 3 4 1e6
+.AC DEC 75 10 100k
+.PRINT AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1)
+.PROBE AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1)
+.OP
+.END

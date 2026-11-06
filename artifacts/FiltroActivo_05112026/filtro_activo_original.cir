@@ -1,0 +1,40 @@
+* AC Analysis of Active Filter (Ideal Op-Amp) - Circuito objetivo
+* Sinusoidal Input: Vi = 1mV
+* Component Values:
+* RA=1.27k, RB=2.3k, G1=1/RA, G2=1/RB
+* C1=C2=0.1uF
+
+.PARAM RA_VAL=1.27k
+.PARAM RB_VAL=2.3k
+.PARAM G1VAL='1/RA_VAL'
+.PARAM G2VAL='1/RB_VAL'
+
+V1 1 0 DC 0 AC 1m
+
+* Input Capacitors
+C1 1 2 0.1u
+C2 2 3 0.1u
+
+* Conductances G1 and G2 (modeladas como resistencias 1/G)
+R_G1 2 5 '1/G1VAL'
+R_G2 3 0 '1/G2VAL'
+
+* Op-Amp Feedback Network
+R_B 5 4 RB_VAL
+R_A 4 0 RA_VAL
+
+* Ideal Op-Amp modeled as E-controlled source
+E_A1 5 0 3 4 1e6
+
+* 10 Hz a 100 kHz, 4 decadas x 75 = 300 puntos
+.AC DEC 75 10 100k
+
+* Print voltages and currents
+.PRINT AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1)
+.PRINT AC VDB(5) VP(5)
+.PROBE AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1) VDB(5) VP(5)
+
+* POST=2 escribe los resultados en formato ASCII (.ac0 legible)
+.OPTION POST=2 PROBE
+.OP
+.END

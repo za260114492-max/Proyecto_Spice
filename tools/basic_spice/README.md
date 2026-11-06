@@ -65,6 +65,7 @@ New-Item -ItemType Directory -Path $out -ErrorAction Stop | Out-Null
 python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/voltage_source_divider.cir -o "$out/parsed.json"
 python tools/basic_spice/validate_netlist.py "$out/parsed.json" -o "$out/netlist_validation.json"
 python tools/basic_spice/build_circuit_model.py "$out/parsed.json" -o "$out/circuit.json"
+python tools/basic_spice/build_oriented_graph.py "$out/circuit.json" -o "$out/topology.json" --image "$out/graph.png"
 python tools/basic_spice/build_incidence_matrix.py "$out/circuit.json" -o "$out/incidence.json"
 python tools/basic_spice/stamp_elements.py "$out/circuit.json" --analysis DC -o "$out/stamps.json"
 python tools/basic_spice/build_constitutive_matrices.py "$out/circuit.json" "$out/stamps.json" -o "$out/constitutive.json"
@@ -82,6 +83,7 @@ New-Item -ItemType Directory -Path $out -ErrorAction Stop | Out-Null
 python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/rc_lowpass_ac_sweep.cir -o "$out/parsed.json"
 python tools/basic_spice/validate_netlist.py "$out/parsed.json" -o "$out/netlist_validation.json"
 python tools/basic_spice/build_circuit_model.py "$out/parsed.json" -o "$out/circuit.json"
+python tools/basic_spice/build_oriented_graph.py "$out/circuit.json" -o "$out/topology.json" --image "$out/graph.png"
 python tools/basic_spice/build_incidence_matrix.py "$out/circuit.json" -o "$out/incidence.json"
 python tools/basic_spice/solve_ac_sweep.py "$out/circuit.json" "$out/incidence.json" --input-node 1 --output-node 2 -o "$out/ac_sweep.json"
 ```
@@ -104,12 +106,11 @@ Genera las curvas de ganancia/fase y, opcionalmente, superpone una comparación 
 python tools/basic_spice/plot_results.py "$out/ac_sweep.json" --comparison "$out/ac_comparison.json" --output-prefix "$out/rc_lowpass" --format png
 ```
 
-Produce `rc_lowpass_gain.png`, `rc_lowpass_phase.png` y `rc_lowpass_plot_manifest.json`. La frecuencia se muestra en escala lineal con una marca etiquetada cada 100 Hz (100, 200, 300, ...); el eje Y conserva marcas y rejilla principales/secundarias, con cuatro marcas menores por intervalo principal. También acepta `--format svg`. Si un barrido tiene puntos fallidos, las gráficas individuales los omiten explícitamente y el manifiesto los enumera; una comparación con referencia fallida se rechaza.
+Produce `rc_lowpass_gain.png`, `rc_lowpass_phase.png` y `rc_lowpass_plot_manifest.json`. La frecuencia se muestra en escala lineal con divisiones y etiquetas automáticas según el rango visible; el ancho de ambas gráficas también crece con el rango de frecuencias hasta un máximo de 16 pulgadas. Los ejes Y conservan divisiones y rejilla principales/secundarias. También acepta `--format svg`. Si un barrido tiene puntos fallidos, las gráficas individuales los omiten explícitamente y el manifiesto los enumera; una comparación con referencia fallida se rechaza.
 
-Genera un reporte Markdown al final del flujo, a partir del netlist original y artefactos conservados. Para incluir el grafo, expórtalo primero; no hace falta incluir una referencia para reportar los resultados del barrido:
+Genera un reporte Markdown al final del flujo, a partir del netlist original y artefactos conservados. El grafo orientado (`topology.json`) es obligatorio para el reporte; su imagen `graph.png` o `graph.svg` también debe haberse generado en la misma carpeta de ejecución:
 
 ```powershell
-python tools/basic_spice/build_oriented_graph.py "$out/circuit.json" -o "$out/topology.json" --image "$out/topology.png"
 python tools/basic_spice/generate_report.py tools/basic_spice/examples/rc_lowpass_ac_sweep.cir "$out/parsed.json" "$out/circuit.json" "$out/incidence.json" -o "$out/report.md" --graph-json "$out/topology.json" --ac-sweep-json "$out/ac_sweep.json" --plot-manifest-json "$out/rc_lowpass_plot_manifest.json"
 ```
 

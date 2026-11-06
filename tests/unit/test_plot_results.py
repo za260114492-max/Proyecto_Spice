@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoLocator
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "basic_spice"))
 
@@ -16,38 +17,44 @@ from build_incidence_matrix import build_incidence_matrices
 from circuit_identity import circuit_signature
 from compare_reference import compare_reference
 from parse_netlist import parse_netlist_text
-from plot_results import PlotResultsError, _configure_bode_axes, plot_results
+from plot_results import (
+    PlotResultsError,
+    _configure_bode_axes,
+    _figure_width,
+    plot_results,
+)
 from solve_ac_sweep import solve_ac_sweep
 
 
 class PlotResultsTests(unittest.TestCase):
-    def test_bode_axes_label_frequency_every_100_hz(self) -> None:
+    def test_bode_axes_choose_frequency_ticks_automatically(self) -> None:
         figure, axis = plt.subplots()
         try:
-            axis.plot([100.0, 400.0], [0.0, 10.0])
-            axis.set_xlim(100.0, 400.0)
+            axis.plot([0.0, 1000.0], [0.0, 10.0])
+            axis.set_xlim(0.0, 1000.0)
             axis.set_ylim(0.0, 10.0)
             _configure_bode_axes(axis)
             figure.canvas.draw()
 
-            lower, upper = axis.get_xlim()
-            major_ticks = [
-                tick
-                for tick in axis.xaxis.get_majorticklocs()
-                if lower <= tick <= upper
-            ]
-            self.assertEqual(
-                major_ticks,
-                [float(frequency) for frequency in range(100, 401, 100)],
-            )
-            formatter = axis.xaxis.get_major_formatter()
-            self.assertEqual(
-                [formatter(tick, index) for index, tick in enumerate(major_ticks)],
-                [str(frequency) for frequency in range(100, 401, 100)],
+            self.assertIsInstance(axis.xaxis.get_major_locator(), AutoLocator)
+            self.assertIsInstance(axis.yaxis.get_major_locator(), AutoLocator)
+            narrow_range_ticks = axis.xaxis.get_majorticklocs()
+            axis.set_xlim(0.0, 10000.0)
+            figure.canvas.draw()
+            wide_range_ticks = axis.xaxis.get_majorticklocs()
+            self.assertGreater(
+                wide_range_ticks[1] - wide_range_ticks[0],
+                narrow_range_ticks[1] - narrow_range_ticks[0],
             )
             self.assertGreaterEqual(len(axis.yaxis.get_minorticklocs()), 20)
         finally:
             plt.close(figure)
+
+    def test_figure_width_grows_with_frequency_range(self) -> None:
+        small_range_width = _figure_width([10.0, 1000.0])
+        large_range_width = _figure_width([10.0, 100000.0])
+        self.assertGreater(large_range_width, small_range_width)
+        self.assertLessEqual(_figure_width([1.0, 1e15]), 16.0)
 
     def setUp(self) -> None:
         self.circuit = build_circuit(
