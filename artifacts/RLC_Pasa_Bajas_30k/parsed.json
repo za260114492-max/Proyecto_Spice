@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "source_name": "filtro_pasabanda_compatible.cir",
+  "elements": [
+    {
+      "name": "V1",
+      "type": "V",
+      "node_from": "1",
+      "node_to": "0",
+      "value_si": 0.001,
+      "unit": "volt",
+      "source_kind": "AC",
+      "dc_value_si": 0.0,
+      "ac_magnitude": 0.001,
+      "ac_phase_deg": 0.0,
+      "source_line": "V1 1 0 AC 1m",
+      "line_number": 2
+    },
+    {
+      "name": "C1",
+      "type": "C",
+      "node_from": "1",
+      "node_to": "2",
+      "value_si": 2.533e-08,
+      "unit": "farad",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "C1 1 2 25.33n",
+      "line_number": 3
+    },
+    {
+      "name": "L1",
+      "type": "L",
+      "node_from": "2",
+      "node_to": "3",
+      "value_si": 0.01,
+      "unit": "henry",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "L1 2 3 10m",
+      "line_number": 4
+    },
+    {
+      "name": "R1",
+      "type": "R",
+      "node_from": "3",
+      "node_to": "0",
+      "value_si": 125.7,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "source_line": "R1 3 0 125.7",
+      "line_number": 5
+    }
+  ],
+  "directives": [
+    {
+      "command": "AC",
+      "sweep": "LIN",
+      "points": 3000,
+      "f_start_hz": 1.0,
+      "f_stop_hz": 30000.0,
+      "source_line": ".AC LIN 3000 1 30k",
+      "line_number": 6
+    },
+    {
+      "command": "PRINT",
+      "analysis": "AC",
+      "observables": [
+        {
+          "kind": "V",
+          "node": "3"
+        }
+      ],
+      "voltage_nodes": [
+        "3"
+      ],
+      "source_line": ".PRINT AC V(3)",
+      "line_number": 7
+    },
+    {
+      "command": "END",
+      "source_line": ".END",
+      "line_number": 8
+    }
+  ],
+  "nodes": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "warnings": []
+}

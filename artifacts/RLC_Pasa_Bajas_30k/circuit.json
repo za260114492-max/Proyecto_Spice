@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0",
+  "source_name": "filtro_pasabanda_compatible.cir",
+  "reference_node": "0",
+  "nodes": [
+    {
+      "id": "0",
+      "index_full": 0,
+      "index_reduced": null,
+      "is_reference": true
+    },
+    {
+      "id": "1",
+      "index_full": 1,
+      "index_reduced": 0,
+      "is_reference": false
+    },
+    {
+      "id": "2",
+      "index_full": 2,
+      "index_reduced": 1,
+      "is_reference": false
+    },
+    {
+      "id": "3",
+      "index_full": 3,
+      "index_reduced": 2,
+      "is_reference": false
+    }
+  ],
+  "branches": [
+    {
+      "id": "B1",
+      "index": 0,
+      "component_name": "V1",
+      "element_type": "V",
+      "node_from": "1",
+      "node_to": "0",
+      "value_si": 0.001,
+      "unit": "volt",
+      "source_kind": "AC",
+      "dc_value_si": 0.0,
+      "ac_magnitude": 0.001,
+      "ac_phase_deg": 0.0,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_component_name": null,
+      "constraint_branch_id": null,
+      "source_line": "V1 1 0 AC 1m",
+      "line_number": 2
+    },
+    {
+      "id": "B2",
+      "index": 1,
+      "component_name": "C1",
+      "element_type": "C",
+      "node_from": "1",
+      "node_to": "2",
+      "value_si": 2.533e-08,
+      "unit": "farad",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_component_name": null,
+      "constraint_branch_id": null,
+      "source_line": "C1 1 2 25.33n",
+      "line_number": 3
+    },
+    {
+      "id": "B3",
+      "index": 2,
+      "component_name": "L1",
+      "element_type": "L",
+      "node_from": "2",
+      "node_to": "3",
+      "value_si": 0.01,
+      "unit": "henry",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_component_name": null,
+      "constraint_branch_id": null,
+      "source_line": "L1 2 3 10m",
+      "line_number": 4
+    },
+    {
+      "id": "B4",
+      "index": 3,
+      "component_name": "R1",
+      "element_type": "R",
+      "node_from": "3",
+      "node_to": "0",
+      "value_si": 125.7,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_component_name": null,
+      "constraint_branch_id": null,
+      "source_line": "R1 3 0 125.7",
+      "line_number": 5
+    }
+  ],
+  "directives": [
+    {
+      "command": "AC",
+      "sweep": "LIN",
+      "points": 3000,
+      "f_start_hz": 1.0,
+      "f_stop_hz": 30000.0,
+      "source_line": ".AC LIN 3000 1 30k",
+      "line_number": 6
+    },
+    {
+      "command": "PRINT",
+      "analysis": "AC",
+      "observables": [
+        {
+          "kind": "V",
+          "node": "3"
+        }
+      ],
+      "voltage_nodes": [
+        "3"
+      ],
+      "source_line": ".PRINT AC V(3)",
+      "line_number": 7
+    },
+    {
+      "command": "END",
+      "source_line": ".END",
+      "line_number": 8
+    }
+  ],
+  "warnings": []
+}

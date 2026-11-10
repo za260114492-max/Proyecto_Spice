@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "source_name": "filtro_pasabanda_ac.cir",
+  "analysis": "AC",
+  "frequency_hz": 1414.0,
+  "status": "PASS",
+  "rank": 30,
+  "size": 30,
+  "condition_number": 4322251398.940732,
+  "condition_warning_threshold": 1000000000000.0,
+  "residuals": {
+    "global": {
+      "norm": 4.314798077003148e-19,
+      "scale": 863.6194674066945,
+      "tolerance": 8.636294674066945e-06,
+      "passed": true
+    },
+    "kcl": {
+      "norm": 6.961303562110895e-22,
+      "scale": 2.5752054375228038e-05,
+      "tolerance": 1.0025752054375228e-10,
+      "passed": true
+    },
+    "branch_voltage": {
+      "norm": 0.0,
+      "scale": 0.013412692302078422,
+      "tolerance": 2.341269230207842e-10,
+      "passed": true
+    },
+    "constitutive": {
+      "norm": 4.87890977618477e-19,
+      "scale": 0.010785970338679556,
+      "tolerance": 2.0785970338679556e-10,
+      "passed": true
+    },
+    "tableau": {
+      "norm": 4.314798077003148e-19,
+      "scale": 863.6194674066945,
+      "tolerance": 8.636294674066945e-06,
+      "passed": true
+    }
+  },
+  "normalized_residual": 4.996179729435428e-22,
+  "atol": 1e-10,
+  "rtol": 1e-08,
+  "errors": [],
+  "warnings": [],
+  "diagnostics": []
+}

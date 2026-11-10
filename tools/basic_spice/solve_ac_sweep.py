@@ -16,6 +16,7 @@ from build_circuit_model import Circuit, load_circuit
 from build_constitutive_matrices import build_constitutive_matrices
 from build_incidence_matrix import build_incidence_matrices
 from build_tableau_system import build_tableau_system
+from plot_results import PlotResultsError, plot_results
 from solve_linear_system import LinearSystemError, solve_tableau_system
 from stamp_elements import build_element_stamps
 from validate_solution import validate_tableau_solution
@@ -426,9 +427,20 @@ def main() -> int:
     except (OSError, ValueError) as exc:
         print(f"ERROR: cannot write AC sweep results {args.output!r}: {exc}", file=sys.stderr)
         return 2
+
+    plot_prefix = Path(args.output).with_suffix("")
+    try:
+        plot_manifest = plot_results(result, plot_prefix)
+    except (OSError, PlotResultsError, ValueError, TypeError, KeyError) as exc:
+        print(
+            f"ERROR: cannot generate mandatory AC plots for {args.output!r}: {exc}",
+            file=sys.stderr,
+        )
+        return 2
     print(
         f"AC sweep {result['status']}: {result['frequency_count']} points, "
-        f"{result['failed_points']} failed -> {args.output}"
+        f"{result['failed_points']} failed -> {args.output}; "
+        f"plots -> {plot_manifest['gain_plot']}, {plot_manifest['phase_plot']}"
     )
     return 1 if result["status"] == "FAIL" else 0
 

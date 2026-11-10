@@ -1,0 +1,21 @@
+* Filtro activo Sallen-Key pasa-altas - Opamp ideal (nullator + norator)
+* Entrada senoidal Vi = 1 mV
+
+
+* OPAMP IDEAL
+
+V1 1 0 DC 0 AC 1m
+C1 1 2 0.1u
+C2 2 3 0.1u
+R_G1 2 5 1270
+R_G2 3 0 2300
+R_B 4 5 2300
+R_A 4 0 1270
+O_A1 3 4 5 0
+
+.AC DEC 75 10 12k
+.PRINT AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1)
+.PROBE AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1)
+.OPTION POST=2
+.OP
+.END

@@ -1,0 +1,40 @@
+* Filtro activo Sallen-Key pasa-altas + RC pasa-bajas (pasa-banda con resonancia)
+* Opamp ideal (nullator + norator)
+
+
+
+* Fuente: AC para barrido y SIN para transitorio
+V1 1 0 DC 0 AC 1m
+* Para ver el rizado amortiguado, comenta la linea de arriba y usa esta:
+* V1 1 0 DC 0 AC 1m PULSE(0 1m 1u 1u 1u 5m 10m)
+
+* Capacitores
+C1 1 2 0.1u
+C2 2 3 0.1u
+
+* R_G1 = RA ; R_G2 = RB original (1/G1, 1/G2)
+R_G1 2 5 1270
+R_G2 3 0 2.3k
+
+* Red de ganancia
+R_B 4 5 1200
+R_A 4 0 1270
+
+* Opamp ideal: (+)=3  (-)=4  salida=5
+O_A1 3 4 5 0
+
+* --- COMPONENTES NUEVOS ---
+* Pasa-bajas RC a la salida (fc ~ 3.4 kHz) -> pasa-banda
+R_F 5 6 1k
+C_F 6 0 47n
+* Carga
+R_L 6 0 100k
+
+* Analisis
+.AC DEC 75 10 100k
+
+.PRINT AC V(1) V(5) V(6)
+.PROBE AC V(1) V(2) V(3) V(4) V(5) V(6)
+.OPTION POST=2
+.OP
+.END

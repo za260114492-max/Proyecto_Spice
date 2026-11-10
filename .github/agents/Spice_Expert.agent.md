@@ -77,7 +77,7 @@ Los otros scripts descritos en los planes o en algunos skills no están disponib
 
 `build_constitutive_matrices.py` ensambla las matrices constitutivas `Y`, `Z` y `W`. `build_tableau_system.py` crea el sistema `T @ X = W_prime`; `solve_linear_system.py --tableau` lo resuelve y `validate_solution.py` valida sus ecuaciones y condicionamiento. Un estado `SOLVED_NOT_VALIDATED` no es una solución aceptada.
 
-`solve_ac_sweep.py` obtiene las frecuencias de una directiva `.AC LIN/DEC` o de opciones `--frequency` explícitas, resuelve y valida Tableau en cada punto, y calcula `H=Vout/Vin`, magnitud, fase y dB. Entrada y salida son tensiones nodales respecto a tierra. Los puntos fallidos se incluyen en el JSON y hacen que el comando devuelva error.
+`solve_ac_sweep.py` obtiene las frecuencias de una directiva `.AC LIN/DEC` o de opciones `--frequency` explícitas, resuelve y valida Tableau en cada punto, calcula `H=Vout/Vin`, magnitud, fase y dB, y siempre genera las gráficas Bode junto al JSON del barrido. Entrada y salida son tensiones nodales respecto a tierra. Los puntos fallidos se incluyen en el JSON y hacen que el comando devuelva error; si las gráficas no pueden generarse, el flujo también se detiene.
 
 `compare_reference.py` compara únicamente contra datos de referencia identificados y compatibles según `docs/reference/AC_REFERENCE_DATA_SCHEMA.md`; exige la misma huella de circuito, nodos y frecuencias, y no interpola. `plot_results.py` genera las curvas de ganancia/fase y superpone la referencia cuando se proporciona una comparación aceptada.
 

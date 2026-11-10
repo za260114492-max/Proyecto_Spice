@@ -1,0 +1,8 @@
+* Filtro pasa banda RLC serie - f0 = 10 kHz, Q ~ 5, BW ~ 2 kHz
+V1 1 0 AC 1m
+C1 1 2 25.33n
+L1 2 3 10m
+R1 3 0 125.7
+.AC LIN 3000 1 30k
+.PRINT AC VM(3) VP(3)
+.END
