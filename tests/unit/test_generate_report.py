@@ -67,6 +67,8 @@ class GenerateReportTests(unittest.TestCase):
             "## 2. Netlist original",
             "## 6. Grafo orientado",
             "## 7. Matriz de incidencia",
+            "#### A1",
+            "#### A2",
             "## 8. Ecuaciones constitutivas",
             "## 9. Matrices de análisis",
             "## 11. Resultados",

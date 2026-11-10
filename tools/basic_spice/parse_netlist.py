@@ -8,7 +8,8 @@ Purpose:
     to SI units.
 
 Supported MVP elements:
-    R, C, L, independent sources V/I, and voltage-controlled voltage source E.
+    R, C, L, independent sources V/I, voltage-controlled voltage source E,
+    and ideal op-amp O (expanded into differential and output branches).
 Supported directives:
     .OP, .AC LIN/DEC, .PRINT/.PROBE AC V(node)/I(component), .OPTION, .END
 
@@ -45,6 +46,7 @@ UNITS = {
     "V": "volt",
     "I": "ampere",
     "E": "dimensionless",
+    "O": "dimensionless",
 }
 OBSERVABLE_RE = re.compile(r"^([VI])\(([^()]+)\)$", re.IGNORECASE)
 OPTION_RE = re.compile(r"^([A-Z][A-Z0-9_]*)=(\S+)$", re.IGNORECASE)
@@ -191,6 +193,55 @@ def _parse_controlled_voltage_source(
     }
 
 
+def _parse_ideal_opamp(
+    tokens: list[str],
+    line_number: int,
+    source_line: str,
+) -> list[dict[str, Any]]:
+    if len(tokens) != 5:
+        raise NetlistParseError(
+            f"Line {line_number}: ideal op-amp requires: name input+ input- output+ output-"
+        )
+    name, input_plus, input_minus, output_plus, output_minus = tokens
+    input_plus = normalize_node(input_plus)
+    input_minus = normalize_node(input_minus)
+    output_plus = normalize_node(output_plus)
+    output_minus = normalize_node(output_minus)
+    if input_plus == input_minus:
+        raise NetlistParseError(f"Line {line_number}: op-amp input nodes must differ")
+    if output_plus == output_minus:
+        raise NetlistParseError(f"Line {line_number}: op-amp output nodes must differ")
+    common = {
+        "type": "O",
+        "value_si": 0.0,
+        "unit": UNITS["O"],
+        "source_kind": None,
+        "dc_value_si": None,
+        "ac_magnitude": None,
+        "ac_phase_deg": None,
+        "source_line": source_line,
+        "line_number": line_number,
+    }
+    return [
+        {
+            **common,
+            "name": f"{name}_DIFF",
+            "node_from": input_plus,
+            "node_to": input_minus,
+            "opamp_role": "differential",
+            "constraint_component_name": None,
+        },
+        {
+            **common,
+            "name": f"{name}_OUT",
+            "node_from": output_plus,
+            "node_to": output_minus,
+            "opamp_role": "output",
+            "constraint_component_name": f"{name}_DIFF",
+        },
+    ]
+
+
 def parse_component(tokens: list[str], line_number: int, source_line: str) -> dict[str, Any]:
     """Parse one supported component line."""
     if not tokens or not tokens[0]:
@@ -198,12 +249,14 @@ def parse_component(tokens: list[str], line_number: int, source_line: str) -> di
     designator = tokens[0][0].upper()
     if designator not in UNITS:
         raise NetlistParseError(
-            f"Line {line_number}: unsupported element {tokens[0]!r}; supported: R, C, L, V, I, E"
+            f"Line {line_number}: unsupported element {tokens[0]!r}; supported: R, C, L, V, I, E, O"
         )
     if designator in {"V", "I"}:
         return _parse_source(tokens, line_number, source_line)
     if designator == "E":
         return _parse_controlled_voltage_source(tokens, line_number, source_line)
+    if designator == "O":
+        raise NetlistParseError("Ideal op-amp expansion must be handled by parse_netlist_text")
     if len(tokens) != 4:
         raise NetlistParseError(
             f"Line {line_number}: {designator} element requires: name node+ node- value"
@@ -325,6 +378,17 @@ def parse_netlist_text(text: str, source_name: str = "<memory>") -> dict[str, An
             if directive["command"] == "END":
                 saw_end = True
                 break
+            continue
+        if tokens[0][0].upper() == "O":
+            opamp_elements = _parse_ideal_opamp(tokens, line_number, raw)
+            for element in opamp_elements:
+                canonical_name = element["name"].upper()
+                if canonical_name in names:
+                    raise NetlistParseError(
+                        f"Line {line_number}: duplicate component name {element['name']!r}"
+                    )
+                names.add(canonical_name)
+                elements.append(element)
             continue
         element = parse_component(tokens, line_number, raw)
         canonical_name = element["name"].upper()

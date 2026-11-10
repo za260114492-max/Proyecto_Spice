@@ -65,6 +65,11 @@ Los otros scripts descritos en los planes o en algunos skills no están disponib
    Pasa `$outDir\<nombre_de_artefacto>` a cada argumento `-o`, `--output`, `--csv`, `--markdown`, `--npz`, `--image` y `--output-prefix`. También guarda allí cualquier CSV u otro archivo que exportes. No escribas archivos directamente en `artifacts/`, no reutilices una carpeta de ejecución anterior y no guardes resultados junto al netlist original. Si la carpeta no se puede crear, detén el flujo e informa el error.
 3. Aplica las reglas de los skills pertinentes para interpretar prefijos, tierra, orientación de ramas y unidades.
 4. Ejecuta las herramientas disponibles, en este orden: parseo, validación semántica, modelo del circuito, grafo orientado y matriz de incidencia. **El grafo orientado es obligatorio para todo circuito cuyo modelo se haya construido correctamente:** antes de generar la matriz de incidencia o resolver el circuito, ejecuta `build_oriented_graph.py` y produce ambos artefactos en la carpeta de la ejecución: `topology.json` y `graph.png` (o `graph.svg`). No omitas la imagen ni trates el grafo como opcional. Si el grafo o su imagen no se pueden generar, detén el flujo y reporta el error; no presentes una resolución parcial como completa. Selecciona después la formulación: usa ensamblaje nodal para circuitos compatibles; para Tableau, genera stamps, matrices constitutivas, sistema Tableau, solución y validación. Para barridos AC, ejecuta `solve_ac_sweep.py` con nodos de entrada y salida explícitos. No continúes si `validate_netlist.py` devuelve `FAIL`.
+   Si el netlist contiene `.SUBCKT OPAMP_IDEAL` y una instancia `X`, ejecuta
+   primero `expand_ideal_opamp_netlist.py`. La expansión obligatoria genera
+   `O_<instancia>` y nunca `E_NULOR`, `E_A1` ni otra VCVS de ganancia finita.
+   Para este caso, el reporte académico sólo puede generarse después de
+   producir `stamps.json`, `constitutive.json` y `tableau.json`.
 5. Inspecciona la salida de cada etapa antes de continuar. Si una herramienta falla o detecta una incompatibilidad, detén el flujo y comunica el diagnóstico.
 6. Explica los resultados usando únicamente los artefactos generados por las herramientas. Cita la ruta de la carpeta de ejecución y distingue claramente entre cálculos ejecutados, validaciones disponibles y funcionalidades aún no implementadas.
 

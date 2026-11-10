@@ -92,6 +92,27 @@ python tools/basic_spice/solve_ac_sweep.py "$out/circuit.json" "$out/incidence.j
 
 El parser admite fuentes independientes con DC y AC simultáneos (por ejemplo, `V1 IN 0 DC 0 AC 10m`), fuentes VCVS `Ename n+ n- nc+ nc- ganancia`, y `.OPTION` con ajustes `NAME=VALUE`. Las VCVS se resuelven mediante Tableau; el análisis nodal clásico las rechaza explícitamente. `.OP` puede coexistir con `.AC`, pero el barrido ejecuta únicamente los puntos de `.AC`; `.OPTION` se conserva como metadato y no activa funciones de salida específicas de un simulador externo.
 
+Para un netlist que contiene `.SUBCKT OPAMP_IDEAL` y una instancia `X_A1`,
+la expansión oficial es:
+
+```powershell
+python tools/basic_spice/expand_ideal_opamp_netlist.py input.cir -o "$out/expanded.cir"
+```
+
+La herramienta elimina la macro SPICE y genera `O_A1 inp inn out 0`; nunca
+genera `E_NULOR` ni aproxima el OpAmp con una ganancia finita. El archivo
+expandido debe pasar por parseo, stamps, matrices constitutivas y Tableau antes
+del barrido AC y del reporte.
+
+La matriz de incidencia se exporta completa (`A_full`) y reducida
+(`A_reduced`). Para el ejemplo académico del OpAmp ideal, la partición sigue
+literalmente las diapositivas: `A1 = [B2 B3 B4 B5 B6 B7]` y
+`A2 = [B1 B8 B9]`. En ese ejemplo el orden de componentes es
+`[V1, C1, C2, R_G2, R_A, R_B, R_G1, O_A1_DIFF, O_A1_OUT]`; `B6` se orienta
+de nodo 4 a nodo 5 como en el documento. Los campos `branch_order_A1`,
+`branch_order_A2` y los índices de partición permiten reconstruir
+`A = [A1 A2]`.
+
 Para comparar el barrido con una referencia identificada, prepara un JSON según [el esquema de referencia AC](../../docs/reference/AC_REFERENCE_DATA_SCHEMA.md). Debe incluir datos de la misma topología y condiciones, la huella `circuit_signature` copiada de `ac_sweep.json`, los mismos nodos de entrada/salida y una fila por frecuencia, sin interpolación:
 
 ```powershell
@@ -127,6 +148,14 @@ Para reportar un punto Tableau, añade `--stamps-json`, `--constitutive-json`, `
 ```powershell
 python tools/basic_spice/stamp_elements.py "$out/circuit.json" --analysis AC --frequency 1000 -o "$out/ac_stamps_1khz.json"
 ```
+
+Para el modelo académico del documento, un OpAmp ideal se declara como
+`O_A1 nodo_entrada_pos nodo_entrada_neg nodo_salida_pos nodo_salida_neg`.
+El parser lo expande a dos ramas especiales: la restricción diferencial
+`V(+) - V(-) = 0` y la restricción de corriente de entrada `I(entrada) = 0`.
+Así, la partición de incidencia produce `A1` para las ramas pasivas y `A2`
+para la fuente de entrada y las ramas del OpAmp, sin sustituir el OpAmp por
+una fuente VCVS de ganancia finita.
 
 Los stamps se consumen para construir el bloque constitutivo y el sistema Tableau, pero no los usa el ensamblador nodal clásico. En análisis DC estacionario, el capacitor ideal queda abierto y el inductor ideal en cortocircuito. En análisis AC, las fuentes definidas como DC se representan por fasor cero y viceversa.
 

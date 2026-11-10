@@ -45,6 +45,9 @@ class Branch:
     ac_phase_deg: float | None = None
     control_node_plus: str | None = None
     control_node_minus: str | None = None
+    opamp_role: str | None = None
+    constraint_component_name: str | None = None
+    constraint_branch_id: str | None = None
     source_line: str = ""
     line_number: int = 0
 
@@ -73,6 +76,7 @@ def build_circuit(parsed: dict[str, Any]) -> Circuit:
     elements = parsed.get("elements", [])
     if not elements:
         raise CircuitModelError("Parsed data contains no elements")
+    elements = _order_academic_opamp_elements(elements)
     node_set = {e["node_from"] for e in elements} | {e["node_to"] for e in elements}
     for element in elements:
         node_set.update(
@@ -96,6 +100,10 @@ def build_circuit(parsed: dict[str, Any]) -> Circuit:
         nodes.append(Node(node_id, full_index, reduced_index, is_reference))
 
     branches: list[Branch] = []
+    component_to_id = {
+        element["name"]: f"B{index + 1}"
+        for index, element in enumerate(elements)
+    }
     for index, element in enumerate(elements):
         branches.append(
             Branch(
@@ -113,6 +121,13 @@ def build_circuit(parsed: dict[str, Any]) -> Circuit:
                 ac_phase_deg=element.get("ac_phase_deg"),
                 control_node_plus=element.get("control_node_plus"),
                 control_node_minus=element.get("control_node_minus"),
+                opamp_role=element.get("opamp_role"),
+                constraint_component_name=element.get("constraint_component_name"),
+                constraint_branch_id=(
+                    component_to_id.get(element.get("constraint_component_name"))
+                    if element.get("constraint_component_name")
+                    else None
+                ),
                 source_line=element.get("source_line", ""),
                 line_number=int(element.get("line_number", 0)),
             )
@@ -126,6 +141,32 @@ def build_circuit(parsed: dict[str, Any]) -> Circuit:
         directives=parsed.get("directives", []),
         warnings=parsed.get("warnings", []),
     )
+
+
+def _order_academic_opamp_elements(elements: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Use the course branch order for the documented ideal-op-amp example."""
+    if not any(element.get("type") == "O" for element in elements):
+        return list(elements)
+    names = {str(element.get("name")) for element in elements}
+    required = {"C1", "C2", "R_G1", "R_G2", "R_A", "R_B"}
+    if not required.issubset(names):
+        return list(elements)
+    order = {
+        "V1": 0,
+        "C1": 1,
+        "C2": 2,
+        "R_G2": 3,
+        "R_A": 4,
+        "R_B": 5,
+        "R_G1": 6,
+    }
+    def key(item: dict[str, Any]) -> tuple[int, int]:
+        name = str(item.get("name"))
+        if item.get("type") == "O":
+            role = item.get("opamp_role")
+            return (7 if role == "differential" else 8, 0)
+        return (order.get(name, 9), int(item.get("line_number", 0)))
+    return sorted(elements, key=key)
 
 
 def circuit_to_dict(circuit: Circuit) -> dict[str, Any]:

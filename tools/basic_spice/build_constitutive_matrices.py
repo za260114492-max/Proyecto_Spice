@@ -177,6 +177,13 @@ def build_constitutive_matrices(
                 node_coupling[row_index, node_indices[control_plus]] -= branch.value_si
             if control_minus != circuit.reference_node:
                 node_coupling[row_index, node_indices[control_minus]] += branch.value_si
+        if branch.element_type == "O" and branch.opamp_role == "output":
+            constraint_branch_id = branch.constraint_branch_id
+            if constraint_branch_id not in expected_order:
+                raise ConstitutiveMatrixError(
+                    f"Op-amp output {branch.component_name} has no differential branch"
+                )
+            z_matrix[row_index, expected_order.index(constraint_branch_id)] = 1.0
         equation_rows.append(
             {
                 "row_index": row_index,
@@ -186,6 +193,8 @@ def build_constitutive_matrices(
                 "source_kind": branch.source_kind,
                 "control_node_plus": branch.control_node_plus,
                 "control_node_minus": branch.control_node_minus,
+                "opamp_role": branch.opamp_role,
+                "constraint_branch_id": branch.constraint_branch_id,
                 "equation": equation,
                 "source_line": branch.source_line,
                 "line_number": branch.line_number,

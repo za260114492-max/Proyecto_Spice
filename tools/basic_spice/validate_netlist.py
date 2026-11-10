@@ -17,6 +17,7 @@ EXPECTED_UNITS = {
     "V": "volt",
     "I": "ampere",
     "E": "dimensionless",
+    "O": "dimensionless",
 }
 PASSIVE_TYPES = {"R", "C", "L"}
 SOURCE_TYPES = {"V", "I"}
@@ -132,7 +133,7 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                     f"El elemento {component!r} tiene tipo no soportado: {kind!r}.",
                     line_number=line_number,
                     component=component,
-                    suggestion="Usa únicamente R, C, L, V, I o una fuente E controlada.",
+                    suggestion="Usa R, C, L, V, I, E o un OpAmp ideal O.",
                 )
             )
             continue
@@ -247,6 +248,18 @@ def validate_netlist(parsed: dict[str, Any]) -> dict[str, Any]:
                             node=control_plus,
                         )
                     )
+
+        if kind == "O":
+            role = element.get("opamp_role")
+            if role not in {"differential", "output"}:
+                errors.append(
+                    _issue(
+                        "INVALID_OPAMP_ROLE",
+                        f"{component!r} debe declarar rol diferencial u output.",
+                        line_number=line_number,
+                        component=component,
+                    )
+                )
 
         if kind in SOURCE_TYPES:
             source_kind = element.get("source_kind")

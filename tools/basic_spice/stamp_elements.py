@@ -150,6 +150,30 @@ def _stamp(
             f"V - {branch.value_si:g}*(V({branch.control_node_plus})"
             f" - V({branch.control_node_minus})) = 0",
         )
+    if element_type == "O":
+        if branch.opamp_role == "differential":
+            return (
+                1.0,
+                0.0,
+                0.0,
+                "dimensionless",
+                "ohm",
+                "volt",
+                "V(+) - V(-) = 0",
+            )
+        if branch.opamp_role == "output":
+            return (
+                0.0,
+                0.0,
+                0.0,
+                "siemens",
+                "dimensionless",
+                "ampere",
+                "I(opamp_input) = 0",
+            )
+        raise ElementStampError(
+            f"{branch.component_name}: ideal op-amp branch role is invalid"
+        )
     raise ElementStampError(
         f"{branch.component_name}: unsupported element type {element_type!r}; "
         "supported types are R, C, L, V, I, E"
