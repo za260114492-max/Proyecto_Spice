@@ -88,6 +88,11 @@ python tools/basic_spice/build_incidence_matrix.py "$out/circuit.json" -o "$out/
 python tools/basic_spice/solve_ac_sweep.py "$out/circuit.json" "$out/incidence.json" --input-node 1 --output-node 2 -o "$out/ac_sweep.json"
 ```
 
+`solve_ac_sweep.py` siempre genera las gráficas Bode junto al resultado:
+`ac_sweep_gain.png`, `ac_sweep_phase.png` y
+`ac_sweep_plot_manifest.json`. Si no puede generarlas, el comando termina con
+error explícito y el barrido no se considera completo.
+
 `.PROBE AC` y `.PRINT AC` aceptan mediciones `V(nodo)` e `I(componente)`, por ejemplo `.PROBE AC V(OUT) I(R1)`. Cada punto del barrido incluye los fasores solicitados; las corrientes usan la orientación de rama definida por el orden de nodos del netlist. Si no se indican los nodos con `--input-node` y `--output-node`, el flujo toma los dos primeros nodos de tensión distintos de `.PRINT AC` y, después, de `.PROBE AC` para formar `H=Vout/Vin`. Si no hay dos tensiones, registra las mediciones solicitadas sin calcular una transferencia. También se permiten frecuencias explícitas repetidas con `--frequency 10 --frequency 100`, pero no junto con `.AC`. Los puntos singulares o con entrada cero quedan registrados como fallidos, y el comando devuelve código distinto de cero si falla alguno. Para `H=0`, dB y fase se guardan como `null` porque no están definidos. Frecuencia cero no se incluye: DC se trata por separado.
 
 El parser admite fuentes independientes con DC y AC simultáneos (por ejemplo, `V1 IN 0 DC 0 AC 10m`), fuentes VCVS `Ename n+ n- nc+ nc- ganancia`, y `.OPTION` con ajustes `NAME=VALUE`. Las VCVS se resuelven mediante Tableau; el análisis nodal clásico las rechaza explícitamente. `.OP` puede coexistir con `.AC`, pero el barrido ejecuta únicamente los puntos de `.AC`; `.OPTION` se conserva como metadato y no activa funciones de salida específicas de un simulador externo.

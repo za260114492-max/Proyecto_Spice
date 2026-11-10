@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "source_name": "filtro_pasabanda_compatible.cir",
+  "reference_node": "0",
+  "nodes": [
+    {
+      "id": "0",
+      "is_reference": true
+    },
+    {
+      "id": "1",
+      "is_reference": false
+    },
+    {
+      "id": "2",
+      "is_reference": false
+    },
+    {
+      "id": "3",
+      "is_reference": false
+    }
+  ],
+  "edges": [
+    {
+      "node_from": "1",
+      "node_to": "0",
+      "key": "B1",
+      "branch_id": "B1",
+      "component": "V1",
+      "element_type": "V",
+      "value_si": 0.001,
+      "unit": "volt"
+    },
+    {
+      "node_from": "1",
+      "node_to": "2",
+      "key": "B2",
+      "branch_id": "B2",
+      "component": "C1",
+      "element_type": "C",
+      "value_si": 2.533e-08,
+      "unit": "farad"
+    },
+    {
+      "node_from": "2",
+      "node_to": "3",
+      "key": "B3",
+      "branch_id": "B3",
+      "component": "L1",
+      "element_type": "L",
+      "value_si": 0.01,
+      "unit": "henry"
+    },
+    {
+      "node_from": "3",
+      "node_to": "0",
+      "key": "B4",
+      "branch_id": "B4",
+      "component": "R1",
+      "element_type": "R",
+      "value_si": 125.7,
+      "unit": "ohm"
+    }
+  ],
+  "is_connected": true
+}

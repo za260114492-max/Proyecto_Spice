@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "source_name": "expanded.cir",
+  "analysis": "AC",
+  "frequency_hz": 1000.0,
+  "status": "PASS",
+  "rank": 23,
+  "size": 23,
+  "condition_number": 51370778.89155353,
+  "condition_warning_threshold": 1000000000000.0,
+  "residuals": {
+    "global": {
+      "norm": 1.084203617066353e-19,
+      "scale": 14.56414550929388,
+      "tolerance": 1.457414550929388e-07,
+      "passed": true
+    },
+    "kcl": {
+      "norm": 1.2909136708872688e-22,
+      "scale": 8.479006773665279e-06,
+      "tolerance": 1.0008479006773666e-10,
+      "passed": true
+    },
+    "branch_voltage": {
+      "norm": 0.0,
+      "scale": 0.006924258583320337,
+      "tolerance": 1.6924258583320338e-10,
+      "passed": true
+    },
+    "constitutive": {
+      "norm": 1.1423799254637664e-22,
+      "scale": 0.0056822190851675706,
+      "tolerance": 1.5682219085167572e-10,
+      "passed": true
+    },
+    "tableau": {
+      "norm": 1.084203617066353e-19,
+      "scale": 14.56414550929388,
+      "tolerance": 1.457414550929388e-07,
+      "passed": true
+    }
+  },
+  "normalized_residual": 7.444333870287726e-21,
+  "atol": 1e-10,
+  "rtol": 1e-08,
+  "errors": [],
+  "warnings": [],
+  "diagnostics": []
+}

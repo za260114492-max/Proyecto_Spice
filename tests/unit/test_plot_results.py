@@ -2,17 +2,19 @@
 from __future__ import annotations
 
 import copy
+import json
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoLocator
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "basic_spice"))
 
-from build_circuit_model import build_circuit
+from build_circuit_model import build_circuit, circuit_to_dict
 from build_incidence_matrix import build_incidence_matrices
 from circuit_identity import circuit_signature
 from compare_reference import compare_reference
@@ -24,6 +26,7 @@ from plot_results import (
     plot_results,
 )
 from solve_ac_sweep import solve_ac_sweep
+from solve_ac_sweep import main as solve_ac_sweep_main
 
 
 class PlotResultsTests(unittest.TestCase):
@@ -146,6 +149,43 @@ class PlotResultsTests(unittest.TestCase):
                     Path(directory) / "invalid",
                     comparison,
                 )
+
+    def test_ac_cli_always_generates_plots_next_to_sweep(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            circuit_path = root / "circuit.json"
+            incidence_path = root / "incidence.json"
+            output_path = root / "ac_sweep.json"
+            circuit_path.write_text(
+                json.dumps(circuit_to_dict(self.circuit)),
+                encoding="utf-8",
+            )
+            incidence_path.write_text(
+                json.dumps(build_incidence_matrices(self.circuit)),
+                encoding="utf-8",
+            )
+            with patch(
+                "sys.argv",
+                [
+                    "solve_ac_sweep.py",
+                    str(circuit_path),
+                    str(incidence_path),
+                    "--input-node",
+                    "1",
+                    "--output-node",
+                    "2",
+                    "--frequency",
+                    "100",
+                    "--frequency",
+                    "1000",
+                    "-o",
+                    str(output_path),
+                ],
+            ):
+                self.assertEqual(solve_ac_sweep_main(), 0)
+            self.assertTrue((root / "ac_sweep_gain.png").is_file())
+            self.assertTrue((root / "ac_sweep_phase.png").is_file())
+            self.assertTrue((root / "ac_sweep_plot_manifest.json").is_file())
 
 
 if __name__ == "__main__":

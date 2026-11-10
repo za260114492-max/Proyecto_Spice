@@ -1,0 +1,39 @@
+﻿* Filtro activo Sallen-Key pasa-altas - Opamp ideal (nullator + norator)
+* Entrada senoidal Vi = 1 mV
+* Valores nuevos: RA = RB = 1.59k, C1 = C2 = 0.1u
+* K = 1 + RB/RA = 2 (6.02 dB)
+* f0 = 1/(2*pi*R*C) ~ 1 kHz
+* Q = 1
+
+.PARAM RA_VAL=1.59k
+.PARAM RB_VAL=1.59k
+
+.PARAM MU=1e9
+.SUBCKT OPAMP_IDEAL inp inn out
+E_NULOR out 0 inp inn 'MU'
+.ENDS OPAMP_IDEAL
+
+V1 1 0 DC 0 AC 1m
+
+* Capacitores
+C1 1 2 0.1u
+C2 2 3 0.1u
+
+* R_G1 = 1/G1 = RA ; R_G2 = 1/G2 = RB
+R_G1 2 5 RA_VAL
+R_G2 3 0 RB_VAL
+
+* Red de ganancia
+R_B 5 4 RB_VAL
+R_A 4 0 RA_VAL
+
+* Opamp ideal: (+)=3  (-)=4  salida=5
+X_A1 3 4 5 OPAMP_IDEAL
+
+.AC DEC 75 10 12k
+.PRINT AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1)
+.PRINT AC VDB(5) VP(5)
+.PROBE AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1) VDB(5) VP(5)
+.OPTION POST=2 PROBE
+.OP
+.END

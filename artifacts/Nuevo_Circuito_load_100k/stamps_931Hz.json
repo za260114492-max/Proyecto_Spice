@@ -1,0 +1,372 @@
+{
+  "schema_version": "1.0",
+  "source_name": "expanded.cir",
+  "analysis": "AC",
+  "frequency_hz": 931.0,
+  "omega_rad_s": 5849.645520984195,
+  "equation_convention": "Y*V_branch + Z*I_branch = W",
+  "branch_order": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7",
+    "B8",
+    "B9",
+    "B10",
+    "B11",
+    "B12"
+  ],
+  "stamps": [
+    {
+      "branch_id": "B1",
+      "component_name": "V1",
+      "element_type": "V",
+      "source_kind": "DC_AC",
+      "dc_value_si": 0.0,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "1",
+      "node_to": "0",
+      "source_line": "V1 1 0 DC 0 AC 1m",
+      "line_number": 7,
+      "equation": "V = E",
+      "Y": {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.001,
+        "imag": 0.0
+      },
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "branch_id": "B2",
+      "component_name": "C1",
+      "element_type": "C",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "1",
+      "node_to": "2",
+      "source_line": "C1 1 2 0.1u",
+      "line_number": 12,
+      "equation": "j*omega*C*V - I = 0",
+      "Y": {
+        "real": 0.0,
+        "imag": 0.0005849645520984195
+      },
+      "Z": {
+        "real": -1.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    },
+    {
+      "branch_id": "B3",
+      "component_name": "C2",
+      "element_type": "C",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "2",
+      "node_to": "3",
+      "source_line": "C2 2 3 0.1u",
+      "line_number": 13,
+      "equation": "j*omega*C*V - I = 0",
+      "Y": {
+        "real": 0.0,
+        "imag": 0.0005849645520984195
+      },
+      "Z": {
+        "real": -1.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    },
+    {
+      "branch_id": "B4",
+      "component_name": "R_G2",
+      "element_type": "R",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "3",
+      "node_to": "0",
+      "source_line": "R_G2 3 0 2.3k",
+      "line_number": 17,
+      "equation": "V - R*I = 0",
+      "Y": {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": -2300.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "branch_id": "B5",
+      "component_name": "R_A",
+      "element_type": "R",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "4",
+      "node_to": "0",
+      "source_line": "R_A 4 0 1270",
+      "line_number": 21,
+      "equation": "V - R*I = 0",
+      "Y": {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": -1270.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "branch_id": "B6",
+      "component_name": "R_B",
+      "element_type": "R",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "4",
+      "node_to": "5",
+      "source_line": "R_B 4 5 1200",
+      "line_number": 20,
+      "equation": "V - R*I = 0",
+      "Y": {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": -1200.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "branch_id": "B7",
+      "component_name": "R_G1",
+      "element_type": "R",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "2",
+      "node_to": "5",
+      "source_line": "R_G1 2 5 1270",
+      "line_number": 16,
+      "equation": "V - R*I = 0",
+      "Y": {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": -1270.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "branch_id": "B8",
+      "component_name": "O_A1_DIFF",
+      "element_type": "O",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "3",
+      "node_to": "4",
+      "source_line": "O_A1 3 4 5 0",
+      "line_number": 24,
+      "equation": "V(+) - V(-) = 0",
+      "Y": {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "branch_id": "B9",
+      "component_name": "O_A1_OUT",
+      "element_type": "O",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "5",
+      "node_to": "0",
+      "source_line": "O_A1 3 4 5 0",
+      "line_number": 24,
+      "equation": "I(opamp_input) = 0",
+      "Y": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    },
+    {
+      "branch_id": "B10",
+      "component_name": "R_F",
+      "element_type": "R",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "5",
+      "node_to": "6",
+      "source_line": "R_F 5 6 1k",
+      "line_number": 28,
+      "equation": "V - R*I = 0",
+      "Y": {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": -1000.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "branch_id": "B11",
+      "component_name": "C_F",
+      "element_type": "C",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "6",
+      "node_to": "0",
+      "source_line": "C_F 6 0 47n",
+      "line_number": 29,
+      "equation": "j*omega*C*V - I = 0",
+      "Y": {
+        "real": 0.0,
+        "imag": 0.0002749333394862572
+      },
+      "Z": {
+        "real": -1.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    },
+    {
+      "branch_id": "B12",
+      "component_name": "R_L",
+      "element_type": "R",
+      "source_kind": null,
+      "dc_value_si": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "node_from": "6",
+      "node_to": "0",
+      "source_line": "R_L 6 0 100k",
+      "line_number": 31,
+      "equation": "V - R*I = 0",
+      "Y": {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      "Z": {
+        "real": -100000.0,
+        "imag": 0.0
+      },
+      "W": {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    }
+  ]
+}

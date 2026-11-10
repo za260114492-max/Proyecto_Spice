@@ -1,0 +1,1183 @@
+{
+  "schema_version": "1.0",
+  "source_name": "expanded.cir",
+  "analysis": "AC",
+  "frequency_hz": 1000.0,
+  "omega_rad_s": 6283.185307179586,
+  "equation_convention": "Y @ Vb + Z @ I = W",
+  "unknown_order": {
+    "branch_voltage": [
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B9"
+    ],
+    "branch_current": [
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B9"
+    ]
+  },
+  "row_order": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7",
+    "B8",
+    "B9"
+  ],
+  "node_order": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "row_equations": [
+    {
+      "row_index": 0,
+      "branch_id": "B1",
+      "component_name": "V1",
+      "element_type": "V",
+      "source_kind": "DC_AC",
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_branch_id": null,
+      "equation": "V = E",
+      "source_line": "V1 1 0 DC 0 AC 1m",
+      "line_number": 3,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 1,
+      "branch_id": "B2",
+      "component_name": "C1",
+      "element_type": "C",
+      "source_kind": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_branch_id": null,
+      "equation": "j*omega*C*V - I = 0",
+      "source_line": "C1 1 2 0.1u",
+      "line_number": 4,
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    },
+    {
+      "row_index": 2,
+      "branch_id": "B3",
+      "component_name": "C2",
+      "element_type": "C",
+      "source_kind": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_branch_id": null,
+      "equation": "j*omega*C*V - I = 0",
+      "source_line": "C2 2 3 0.1u",
+      "line_number": 5,
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    },
+    {
+      "row_index": 3,
+      "branch_id": "B4",
+      "component_name": "R_G2",
+      "element_type": "R",
+      "source_kind": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_branch_id": null,
+      "equation": "V - R*I = 0",
+      "source_line": "R_G2 3 0 1590",
+      "line_number": 7,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 4,
+      "branch_id": "B5",
+      "component_name": "R_A",
+      "element_type": "R",
+      "source_kind": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_branch_id": null,
+      "equation": "V - R*I = 0",
+      "source_line": "R_A 4 0 1590",
+      "line_number": 9,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 5,
+      "branch_id": "B6",
+      "component_name": "R_B",
+      "element_type": "R",
+      "source_kind": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_branch_id": null,
+      "equation": "V - R*I = 0",
+      "source_line": "R_B 4 5 1590",
+      "line_number": 8,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 6,
+      "branch_id": "B7",
+      "component_name": "R_G1",
+      "element_type": "R",
+      "source_kind": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": null,
+      "constraint_branch_id": null,
+      "equation": "V - R*I = 0",
+      "source_line": "R_G1 2 5 1590",
+      "line_number": 6,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 7,
+      "branch_id": "B8",
+      "component_name": "O_A1_DIFF",
+      "element_type": "O",
+      "source_kind": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": "differential",
+      "constraint_branch_id": null,
+      "equation": "V(+) - V(-) = 0",
+      "source_line": "O_A1 3 4 5 0",
+      "line_number": 10,
+      "Y_unit": "dimensionless",
+      "Z_unit": "ohm",
+      "W_unit": "volt"
+    },
+    {
+      "row_index": 8,
+      "branch_id": "B9",
+      "component_name": "O_A1_OUT",
+      "element_type": "O",
+      "source_kind": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "opamp_role": "output",
+      "constraint_branch_id": "B8",
+      "equation": "I(opamp_input) = 0",
+      "source_line": "O_A1 3 4 5 0",
+      "line_number": 10,
+      "Y_unit": "siemens",
+      "Z_unit": "dimensionless",
+      "W_unit": "ampere"
+    }
+  ],
+  "Y": [
+    [
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0006283185307179585
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0006283185307179585
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ]
+  ],
+  "Z": [
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1590.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1590.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1590.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": -1590.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 1.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ]
+  ],
+  "node_coupling": [
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      },
+      {
+        "real": 0.0,
+        "imag": 0.0
+      }
+    ]
+  ],
+  "W": [
+    {
+      "real": 0.001,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    },
+    {
+      "real": 0.0,
+      "imag": 0.0
+    }
+  ],
+  "shapes": {
+    "Y": [
+      9,
+      9
+    ],
+    "Z": [
+      9,
+      9
+    ],
+    "node_coupling": [
+      9,
+      5
+    ],
+    "W": [
+      9
+    ]
+  },
+  "row_units": {
+    "Y": [
+      "dimensionless",
+      "siemens",
+      "siemens",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "dimensionless",
+      "siemens"
+    ],
+    "Z": [
+      "ohm",
+      "dimensionless",
+      "dimensionless",
+      "ohm",
+      "ohm",
+      "ohm",
+      "ohm",
+      "ohm",
+      "dimensionless"
+    ],
+    "W": [
+      "volt",
+      "ampere",
+      "ampere",
+      "volt",
+      "volt",
+      "volt",
+      "volt",
+      "volt",
+      "ampere"
+    ]
+  }
+}
