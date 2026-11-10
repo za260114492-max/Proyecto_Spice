@@ -65,6 +65,7 @@ New-Item -ItemType Directory -Path $out -ErrorAction Stop | Out-Null
 python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/voltage_source_divider.cir -o "$out/parsed.json"
 python tools/basic_spice/validate_netlist.py "$out/parsed.json" -o "$out/netlist_validation.json"
 python tools/basic_spice/build_circuit_model.py "$out/parsed.json" -o "$out/circuit.json"
+python tools/basic_spice/build_oriented_graph.py "$out/circuit.json" -o "$out/topology.json" --image "$out/graph.png"
 python tools/basic_spice/build_incidence_matrix.py "$out/circuit.json" -o "$out/incidence.json"
 python tools/basic_spice/stamp_elements.py "$out/circuit.json" --analysis DC -o "$out/stamps.json"
 python tools/basic_spice/build_constitutive_matrices.py "$out/circuit.json" "$out/stamps.json" -o "$out/constitutive.json"
@@ -82,6 +83,7 @@ New-Item -ItemType Directory -Path $out -ErrorAction Stop | Out-Null
 python tools/basic_spice/parse_netlist.py tools/basic_spice/examples/rc_lowpass_ac_sweep.cir -o "$out/parsed.json"
 python tools/basic_spice/validate_netlist.py "$out/parsed.json" -o "$out/netlist_validation.json"
 python tools/basic_spice/build_circuit_model.py "$out/parsed.json" -o "$out/circuit.json"
+python tools/basic_spice/build_oriented_graph.py "$out/circuit.json" -o "$out/topology.json" --image "$out/graph.png"
 python tools/basic_spice/build_incidence_matrix.py "$out/circuit.json" -o "$out/incidence.json"
 python tools/basic_spice/solve_ac_sweep.py "$out/circuit.json" "$out/incidence.json" --input-node 1 --output-node 2 -o "$out/ac_sweep.json"
 ```
@@ -89,6 +91,27 @@ python tools/basic_spice/solve_ac_sweep.py "$out/circuit.json" "$out/incidence.j
 `.PROBE AC` y `.PRINT AC` aceptan mediciones `V(nodo)` e `I(componente)`, por ejemplo `.PROBE AC V(OUT) I(R1)`. Cada punto del barrido incluye los fasores solicitados; las corrientes usan la orientación de rama definida por el orden de nodos del netlist. Si no se indican los nodos con `--input-node` y `--output-node`, el flujo toma los dos primeros nodos de tensión distintos de `.PRINT AC` y, después, de `.PROBE AC` para formar `H=Vout/Vin`. Si no hay dos tensiones, registra las mediciones solicitadas sin calcular una transferencia. También se permiten frecuencias explícitas repetidas con `--frequency 10 --frequency 100`, pero no junto con `.AC`. Los puntos singulares o con entrada cero quedan registrados como fallidos, y el comando devuelve código distinto de cero si falla alguno. Para `H=0`, dB y fase se guardan como `null` porque no están definidos. Frecuencia cero no se incluye: DC se trata por separado.
 
 El parser admite fuentes independientes con DC y AC simultáneos (por ejemplo, `V1 IN 0 DC 0 AC 10m`), fuentes VCVS `Ename n+ n- nc+ nc- ganancia`, y `.OPTION` con ajustes `NAME=VALUE`. Las VCVS se resuelven mediante Tableau; el análisis nodal clásico las rechaza explícitamente. `.OP` puede coexistir con `.AC`, pero el barrido ejecuta únicamente los puntos de `.AC`; `.OPTION` se conserva como metadato y no activa funciones de salida específicas de un simulador externo.
+
+Para un netlist que contiene `.SUBCKT OPAMP_IDEAL` y una instancia `X_A1`,
+la expansión oficial es:
+
+```powershell
+python tools/basic_spice/expand_ideal_opamp_netlist.py input.cir -o "$out/expanded.cir"
+```
+
+La herramienta elimina la macro SPICE y genera `O_A1 inp inn out 0`; nunca
+genera `E_NULOR` ni aproxima el OpAmp con una ganancia finita. El archivo
+expandido debe pasar por parseo, stamps, matrices constitutivas y Tableau antes
+del barrido AC y del reporte.
+
+La matriz de incidencia se exporta completa (`A_full`) y reducida
+(`A_reduced`). Para el ejemplo académico del OpAmp ideal, la partición sigue
+literalmente las diapositivas: `A1 = [B2 B3 B4 B5 B6 B7]` y
+`A2 = [B1 B8 B9]`. En ese ejemplo el orden de componentes es
+`[V1, C1, C2, R_G2, R_A, R_B, R_G1, O_A1_DIFF, O_A1_OUT]`; `B6` se orienta
+de nodo 4 a nodo 5 como en el documento. Los campos `branch_order_A1`,
+`branch_order_A2` y los índices de partición permiten reconstruir
+`A = [A1 A2]`.
 
 Para comparar el barrido con una referencia identificada, prepara un JSON según [el esquema de referencia AC](../../docs/reference/AC_REFERENCE_DATA_SCHEMA.md). Debe incluir datos de la misma topología y condiciones, la huella `circuit_signature` copiada de `ac_sweep.json`, los mismos nodos de entrada/salida y una fila por frecuencia, sin interpolación:
 
@@ -104,12 +127,11 @@ Genera las curvas de ganancia/fase y, opcionalmente, superpone una comparación 
 python tools/basic_spice/plot_results.py "$out/ac_sweep.json" --comparison "$out/ac_comparison.json" --output-prefix "$out/rc_lowpass" --format png
 ```
 
-Produce `rc_lowpass_gain.png`, `rc_lowpass_phase.png` y `rc_lowpass_plot_manifest.json`. La frecuencia se muestra en escala lineal con una marca etiquetada cada 100 Hz (100, 200, 300, ...); el eje Y conserva marcas y rejilla principales/secundarias, con cuatro marcas menores por intervalo principal. También acepta `--format svg`. Si un barrido tiene puntos fallidos, las gráficas individuales los omiten explícitamente y el manifiesto los enumera; una comparación con referencia fallida se rechaza.
+Produce `rc_lowpass_gain.png`, `rc_lowpass_phase.png` y `rc_lowpass_plot_manifest.json`. La frecuencia se muestra en escala lineal con divisiones y etiquetas automáticas según el rango visible; el ancho de ambas gráficas también crece con el rango de frecuencias hasta un máximo de 16 pulgadas. Los ejes Y conservan divisiones y rejilla principales/secundarias. También acepta `--format svg`. Si un barrido tiene puntos fallidos, las gráficas individuales los omiten explícitamente y el manifiesto los enumera; una comparación con referencia fallida se rechaza.
 
-Genera un reporte Markdown al final del flujo, a partir del netlist original y artefactos conservados. Para incluir el grafo, expórtalo primero; no hace falta incluir una referencia para reportar los resultados del barrido:
+Genera un reporte Markdown al final del flujo, a partir del netlist original y artefactos conservados. El grafo orientado (`topology.json`) es obligatorio para el reporte; su imagen `graph.png` o `graph.svg` también debe haberse generado en la misma carpeta de ejecución:
 
 ```powershell
-python tools/basic_spice/build_oriented_graph.py "$out/circuit.json" -o "$out/topology.json" --image "$out/topology.png"
 python tools/basic_spice/generate_report.py tools/basic_spice/examples/rc_lowpass_ac_sweep.cir "$out/parsed.json" "$out/circuit.json" "$out/incidence.json" -o "$out/report.md" --graph-json "$out/topology.json" --ac-sweep-json "$out/ac_sweep.json" --plot-manifest-json "$out/rc_lowpass_plot_manifest.json"
 ```
 
@@ -126,6 +148,14 @@ Para reportar un punto Tableau, añade `--stamps-json`, `--constitutive-json`, `
 ```powershell
 python tools/basic_spice/stamp_elements.py "$out/circuit.json" --analysis AC --frequency 1000 -o "$out/ac_stamps_1khz.json"
 ```
+
+Para el modelo académico del documento, un OpAmp ideal se declara como
+`O_A1 nodo_entrada_pos nodo_entrada_neg nodo_salida_pos nodo_salida_neg`.
+El parser lo expande a dos ramas especiales: la restricción diferencial
+`V(+) - V(-) = 0` y la restricción de corriente de entrada `I(entrada) = 0`.
+Así, la partición de incidencia produce `A1` para las ramas pasivas y `A2`
+para la fuente de entrada y las ramas del OpAmp, sin sustituir el OpAmp por
+una fuente VCVS de ganancia finita.
 
 Los stamps se consumen para construir el bloque constitutivo y el sistema Tableau, pero no los usa el ensamblador nodal clásico. En análisis DC estacionario, el capacitor ideal queda abierto y el inductor ideal en cortocircuito. En análisis AC, las fuentes definidas como DC se representan por fasor cero y viceversa.
 

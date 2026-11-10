@@ -9,6 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "basic_spice"))
 
 from build_circuit_model import build_circuit
+from build_incidence_matrix import build_incidence_matrices
 from build_constitutive_matrices import (
     ConstitutiveMatrixError,
     build_constitutive_matrices,
@@ -109,6 +110,24 @@ class ConstitutiveMatrixTests(unittest.TestCase):
         stamps["analysis"] = ["DC"]
         with self.assertRaises(ConstitutiveMatrixError):
             build_constitutive_matrices(self.circuit, stamps)
+
+    def test_ideal_opamp_uses_document_special_branch_constraint(self) -> None:
+        parsed = parse_netlist_text(
+            "V1 1 0 AC 1\nC1 1 2 0.1u\nC2 2 3 0.1u\n"
+            "R_G1 2 5 1.27k\nR_G2 3 0 2.3k\nR_B 5 4 2.3k\n"
+            "R_A 4 0 1.27k\nO_A1 3 4 5 0\n.END\n"
+        )
+        circuit = build_circuit(parsed)
+        incidence = build_incidence_matrices(circuit)
+        stamps = build_element_stamps(circuit, "AC", 1000.0)
+        result = build_constitutive_matrices(circuit, stamps)
+
+        self.assertEqual(incidence["branch_order"], ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"])
+        self.assertEqual(incidence["component_order"], ["V1", "C1", "C2", "R_G2", "R_A", "R_B", "R_G1", "O_A1_DIFF", "O_A1_OUT"])
+        self.assertEqual(incidence["branch_order_A1"], ["B2", "B3", "B4", "B5", "B6", "B7"])
+        self.assertEqual(incidence["branch_order_A2"], ["B1", "B8", "B9"])
+        self.assertEqual(result["Z"][8][7], {"real": 1.0, "imag": 0.0})
+        self.assertEqual(result["Y"][7][7], {"real": 1.0, "imag": 0.0})
 
 
 if __name__ == "__main__":

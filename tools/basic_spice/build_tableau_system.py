@@ -121,6 +121,26 @@ def build_tableau_system(
         raise TableauAssemblyError(
             "A_reduced entries do not match circuit branch orientation and node order"
         )
+    ordinary_indices = incidence_data.get("ordinary_branch_indices")
+    special_indices = incidence_data.get("special_branch_indices")
+    if not isinstance(ordinary_indices, list) or not isinstance(special_indices, list):
+        raise TableauAssemblyError(
+            "Incidence data must define ordinary_branch_indices and special_branch_indices"
+        )
+    if sorted(ordinary_indices + special_indices) != list(range(branch_count)):
+        raise TableauAssemblyError(
+            "Incidence branch partition must cover each branch exactly once"
+        )
+    a1 = np.asarray(incidence_data.get("A1"), dtype=float)
+    a2 = np.asarray(incidence_data.get("A2"), dtype=float)
+    expected_a1 = a[:, ordinary_indices]
+    expected_a2 = a[:, special_indices]
+    if a1.shape != expected_a1.shape or not np.array_equal(a1, expected_a1):
+        raise TableauAssemblyError("A1 does not match the ordinary branch columns of A_reduced")
+    if a2.shape != expected_a2.shape or not np.array_equal(a2, expected_a2):
+        raise TableauAssemblyError("A2 does not match the special branch columns of A_reduced")
+    if not np.array_equal(np.concatenate((a1, a2), axis=1), a[:, ordinary_indices + special_indices]):
+        raise TableauAssemblyError("A1/A2 partition is inconsistent with A_reduced")
 
     if constitutive_data.get("schema_version") != "1.0":
         raise TableauAssemblyError("Unsupported constitutive-matrix schema")
@@ -215,7 +235,7 @@ def build_tableau_system(
     tableau[current_slice, node_slice] = node_coupling
     rhs[current_slice] = w
 
-    # KCL: A @ I = 0
+    # KCL: [A1 A2] @ [I1; I2] = 0, expressed in original branch order.
     tableau[node_slice, current_slice] = a
 
     row_labels = (
@@ -259,6 +279,8 @@ def build_tableau_system(
         },
         "blocks": {
             "A_reduced": a.tolist(),
+            "A1": _matrix_records(a1),
+            "A2": _matrix_records(a2),
             "Y": _matrix_records(y),
             "Z": _matrix_records(z),
             "node_coupling": _matrix_records(node_coupling),

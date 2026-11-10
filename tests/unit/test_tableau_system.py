@@ -29,9 +29,26 @@ def build_system(netlist: str, analysis: str = "DC", frequency_hz: float | None 
 
 class TableauSystemTests(unittest.TestCase):
     def test_builds_expected_tableau_blocks_and_index_map(self) -> None:
-        _, _, _, tableau = build_system(
+        _, incidence, _, tableau = build_system(
             "V1 1 0 DC 10\nR1 1 2 1k\nR2 2 0 2k\n.END\n"
         )
+        self.assertEqual(incidence["branch_order_A1"], ["B2", "B3"])
+        self.assertEqual(incidence["branch_order_A2"], ["B1"])
+        self.assertEqual(incidence["special_branch_indices"], [0])
+        self.assertEqual(tableau["blocks"]["A1"], [
+            [
+                {"real": 1.0, "imag": 0.0},
+                {"real": 0.0, "imag": 0.0},
+            ],
+            [
+                {"real": -1.0, "imag": 0.0},
+                {"real": 1.0, "imag": 0.0},
+            ],
+        ])
+        self.assertEqual(tableau["blocks"]["A2"], [
+            [{"real": 1.0, "imag": 0.0}],
+            [{"real": 0.0, "imag": 0.0}],
+        ])
         self.assertEqual(tableau["shape"], [8, 8])
         self.assertEqual(
             tableau["index_map"],

@@ -1,0 +1,297 @@
+{
+  "schema_version": "1.0",
+  "source_name": "filtro_activo_expandido.cir",
+  "reference_node": "0",
+  "nodes": [
+    {
+      "id": "0",
+      "index_full": 0,
+      "index_reduced": null,
+      "is_reference": true
+    },
+    {
+      "id": "1",
+      "index_full": 1,
+      "index_reduced": 0,
+      "is_reference": false
+    },
+    {
+      "id": "2",
+      "index_full": 2,
+      "index_reduced": 1,
+      "is_reference": false
+    },
+    {
+      "id": "3",
+      "index_full": 3,
+      "index_reduced": 2,
+      "is_reference": false
+    },
+    {
+      "id": "4",
+      "index_full": 4,
+      "index_reduced": 3,
+      "is_reference": false
+    },
+    {
+      "id": "5",
+      "index_full": 5,
+      "index_reduced": 4,
+      "is_reference": false
+    }
+  ],
+  "branches": [
+    {
+      "id": "B1",
+      "index": 0,
+      "component_name": "V1",
+      "element_type": "V",
+      "node_from": "1",
+      "node_to": "0",
+      "value_si": 0.0,
+      "unit": "volt",
+      "source_kind": "DC_AC",
+      "dc_value_si": 0.0,
+      "ac_magnitude": 0.001,
+      "ac_phase_deg": 0.0,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "source_line": "V1 1 0 DC 0 AC 1m",
+      "line_number": 3
+    },
+    {
+      "id": "B2",
+      "index": 1,
+      "component_name": "C1",
+      "element_type": "C",
+      "node_from": "1",
+      "node_to": "2",
+      "value_si": 1e-07,
+      "unit": "farad",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "source_line": "C1 1 2 0.1u",
+      "line_number": 4
+    },
+    {
+      "id": "B3",
+      "index": 2,
+      "component_name": "C2",
+      "element_type": "C",
+      "node_from": "2",
+      "node_to": "3",
+      "value_si": 1e-07,
+      "unit": "farad",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "source_line": "C2 2 3 0.1u",
+      "line_number": 5
+    },
+    {
+      "id": "B4",
+      "index": 3,
+      "component_name": "R_G1",
+      "element_type": "R",
+      "node_from": "2",
+      "node_to": "5",
+      "value_si": 1270.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "source_line": "R_G1 2 5 1.27k",
+      "line_number": 6
+    },
+    {
+      "id": "B5",
+      "index": 4,
+      "component_name": "R_G2",
+      "element_type": "R",
+      "node_from": "3",
+      "node_to": "0",
+      "value_si": 2300.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "source_line": "R_G2 3 0 2.3k",
+      "line_number": 7
+    },
+    {
+      "id": "B6",
+      "index": 5,
+      "component_name": "R_B",
+      "element_type": "R",
+      "node_from": "5",
+      "node_to": "4",
+      "value_si": 2300.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "source_line": "R_B 5 4 2.3k",
+      "line_number": 8
+    },
+    {
+      "id": "B7",
+      "index": 6,
+      "component_name": "R_A",
+      "element_type": "R",
+      "node_from": "4",
+      "node_to": "0",
+      "value_si": 1270.0,
+      "unit": "ohm",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": null,
+      "control_node_minus": null,
+      "source_line": "R_A 4 0 1.27k",
+      "line_number": 9
+    },
+    {
+      "id": "B8",
+      "index": 7,
+      "component_name": "E_A1",
+      "element_type": "E",
+      "node_from": "5",
+      "node_to": "0",
+      "value_si": 1000000.0,
+      "unit": "dimensionless",
+      "source_kind": null,
+      "dc_value_si": null,
+      "ac_magnitude": null,
+      "ac_phase_deg": null,
+      "control_node_plus": "3",
+      "control_node_minus": "4",
+      "source_line": "E_A1 5 0 3 4 1e6",
+      "line_number": 10
+    }
+  ],
+  "directives": [
+    {
+      "command": "AC",
+      "sweep": "DEC",
+      "points": 75,
+      "f_start_hz": 10.0,
+      "f_stop_hz": 100000.0,
+      "source_line": ".AC DEC 75 10 100k",
+      "line_number": 11
+    },
+    {
+      "command": "PRINT",
+      "analysis": "AC",
+      "observables": [
+        {
+          "kind": "V",
+          "node": "1"
+        },
+        {
+          "kind": "V",
+          "node": "2"
+        },
+        {
+          "kind": "V",
+          "node": "3"
+        },
+        {
+          "kind": "V",
+          "node": "4"
+        },
+        {
+          "kind": "V",
+          "node": "5"
+        },
+        {
+          "kind": "I",
+          "component": "R_B"
+        },
+        {
+          "kind": "I",
+          "component": "V1"
+        }
+      ],
+      "voltage_nodes": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "source_line": ".PRINT AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1)",
+      "line_number": 12
+    },
+    {
+      "command": "PROBE",
+      "analysis": "AC",
+      "observables": [
+        {
+          "kind": "V",
+          "node": "1"
+        },
+        {
+          "kind": "V",
+          "node": "2"
+        },
+        {
+          "kind": "V",
+          "node": "3"
+        },
+        {
+          "kind": "V",
+          "node": "4"
+        },
+        {
+          "kind": "V",
+          "node": "5"
+        },
+        {
+          "kind": "I",
+          "component": "R_B"
+        },
+        {
+          "kind": "I",
+          "component": "V1"
+        }
+      ],
+      "voltage_nodes": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "source_line": ".PROBE AC V(1) V(2) V(3) V(4) V(5) I(R_B) I(V1)",
+      "line_number": 13
+    },
+    {
+      "command": "OP",
+      "source_line": ".OP",
+      "line_number": 14
+    },
+    {
+      "command": "END",
+      "source_line": ".END",
+      "line_number": 15
+    }
+  ],
+  "warnings": []
+}

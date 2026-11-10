@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "basic_sp
 
 from build_circuit_model import build_circuit, circuit_to_dict
 from build_incidence_matrix import build_incidence_matrices
+from build_oriented_graph import build_graph, graph_to_dict
 from generate_report import generate_report
 from parse_netlist import parse_netlist_text
 from solve_ac_sweep import (
@@ -111,6 +112,7 @@ class ACSweepTests(unittest.TestCase):
             circuit_to_dict(circuit),
             build_incidence_matrices(circuit),
             netlist_text,
+            graph=graph_to_dict(build_graph(circuit), circuit),
             sweep=result,
         )
         self.assertIn("I(R5)=", report)

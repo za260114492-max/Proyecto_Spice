@@ -24,6 +24,9 @@ class IncidenceMatrixError(ValueError):
     """Raised when an incidence matrix fails structural validation."""
 
 
+SPECIAL_ELEMENT_TYPES = frozenset({"V", "E", "O"})
+
+
 def build_incidence_matrices(circuit: Circuit) -> dict[str, Any]:
     node_order_full = [n.id for n in circuit.nodes]
     node_order_reduced = [n.id for n in circuit.nodes if not n.is_reference]
@@ -44,6 +47,20 @@ def build_incidence_matrices(circuit: Circuit) -> dict[str, Any]:
             a_reduced[reduced_index[branch.node_to], j] -= 1
 
     validate_incidence(a_full, a_reduced, circuit)
+    special_indices = [
+        branch.index
+        for branch in circuit.branches
+        if branch.element_type in SPECIAL_ELEMENT_TYPES
+    ]
+    ordinary_indices = [
+        branch.index
+        for branch in circuit.branches
+        if branch.element_type not in SPECIAL_ELEMENT_TYPES
+    ]
+    a1_full = a_full[:, ordinary_indices]
+    a2_full = a_full[:, special_indices]
+    a1_reduced = a_reduced[:, ordinary_indices]
+    a2_reduced = a_reduced[:, special_indices]
     return {
         "schema_version": "1.0",
         "source_name": circuit.source_name,
@@ -54,8 +71,21 @@ def build_incidence_matrices(circuit: Circuit) -> dict[str, Any]:
         "component_order": component_order,
         "A_full": a_full.tolist(),
         "A_reduced": a_reduced.tolist(),
+        "A1": a1_reduced.tolist(),
+        "A2": a2_reduced.tolist(),
+        "A1_full": a1_full.tolist(),
+        "A2_full": a2_full.tolist(),
+        "branch_order_A1": [branch_order[index] for index in ordinary_indices],
+        "branch_order_A2": [branch_order[index] for index in special_indices],
+        "component_order_A1": [component_order[index] for index in ordinary_indices],
+        "component_order_A2": [component_order[index] for index in special_indices],
+        "ordinary_branch_indices": ordinary_indices,
+        "special_branch_indices": special_indices,
+        "special_element_types": sorted(SPECIAL_ELEMENT_TYPES),
         "shape_full": list(a_full.shape),
         "shape_reduced": list(a_reduced.shape),
+        "shape_A1": list(a1_reduced.shape),
+        "shape_A2": list(a2_reduced.shape),
     }
 
 

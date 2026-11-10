@@ -13,7 +13,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator, MultipleLocator, StrMethodFormatter
+from matplotlib.ticker import AutoLocator, AutoMinorLocator, StrMethodFormatter
 
 
 class PlotResultsError(ValueError):
@@ -21,13 +21,21 @@ class PlotResultsError(ValueError):
 
 
 def _configure_bode_axes(axis: Any) -> None:
-    axis.xaxis.set_major_locator(MultipleLocator(100))
+    axis.xaxis.set_major_locator(AutoLocator())
+    axis.xaxis.set_minor_locator(AutoMinorLocator(2))
+    axis.yaxis.set_major_locator(AutoLocator())
     axis.xaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
     axis.yaxis.set_minor_locator(AutoMinorLocator(5))
     axis.tick_params(axis="both", which="major", length=6, width=0.8)
     axis.tick_params(axis="both", which="minor", length=3, width=0.6)
     axis.grid(which="major", axis="both", alpha=0.35, linewidth=0.8)
     axis.grid(which="minor", axis="both", alpha=0.12, linewidth=0.45)
+
+
+def _figure_width(frequencies: list[float]) -> float:
+    frequency_span = frequencies[-1] - frequencies[0]
+    additional_width = max(0.0, math.log10(max(frequency_span, 1.0) / 1000.0) * 1.5)
+    return min(16.0, 8.0 + additional_width)
 
 
 def _finite_number(value: Any, label: str) -> float:
@@ -155,12 +163,13 @@ def plot_results(
         }
     )
 
-    fig, axis = plt.subplots(figsize=(8, 5))
+    figure_size = (_figure_width(frequencies), 5)
+    fig, axis = plt.subplots(figsize=figure_size)
     axis.plot(frequencies, gains, marker="o", markersize=3, label="Agente")
     axis.set_xlim(frequencies[0], frequencies[-1])
     _configure_bode_axes(axis)
     if reference is not None:
-        axis.semilogx(
+        axis.plot(
             frequencies,
             [reference[frequency]["gain_db"] for frequency in frequencies],
             marker="x",
@@ -183,12 +192,12 @@ def plot_results(
     fig.savefig(gain_path, format=normalized_format)
     plt.close(fig)
 
-    fig, axis = plt.subplots(figsize=(8, 5))
+    fig, axis = plt.subplots(figsize=figure_size)
     axis.plot(frequencies, phases, marker="o", markersize=3, label="Agente")
     axis.set_xlim(frequencies[0], frequencies[-1])
     _configure_bode_axes(axis)
     if reference is not None:
-        axis.semilogx(
+        axis.plot(
             frequencies,
             [reference[frequency]["phase_deg"] for frequency in frequencies],
             marker="x",

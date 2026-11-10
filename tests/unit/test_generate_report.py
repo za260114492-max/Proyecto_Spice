@@ -67,6 +67,8 @@ class GenerateReportTests(unittest.TestCase):
             "## 2. Netlist original",
             "## 6. Grafo orientado",
             "## 7. Matriz de incidencia",
+            "#### A1",
+            "#### A2",
             "## 8. Ecuaciones constitutivas",
             "## 9. Matrices de análisis",
             "## 11. Resultados",
@@ -85,6 +87,7 @@ class GenerateReportTests(unittest.TestCase):
                 self.circuit,
                 self.incidence,
                 self.netlist.replace("1k", "2k"),
+                graph=self.graph,
             )
 
     def test_report_rejects_mismatched_solution_validation_metadata(self) -> None:
@@ -96,6 +99,7 @@ class GenerateReportTests(unittest.TestCase):
                 self.circuit,
                 self.incidence,
                 self.netlist,
+                graph=self.graph,
                 system=self.system,
                 solution=self.solution,
                 validation=validation,
@@ -138,6 +142,7 @@ class GenerateReportTests(unittest.TestCase):
             circuit,
             incidence,
             netlist,
+            graph=graph_to_dict(build_graph(model), model),
             sweep=sweep,
             comparison=comparison,
         )
@@ -160,6 +165,7 @@ class GenerateReportTests(unittest.TestCase):
             circuit,
             incidence,
             netlist,
+            graph=graph_to_dict(build_graph(model), model),
             sweep=sweep,
             comparison=failed_comparison,
         )
@@ -171,6 +177,7 @@ class GenerateReportTests(unittest.TestCase):
             self.circuit,
             self.incidence,
             self.netlist,
+            graph=self.graph,
         )
         self.assertIn("**Estado del reporte: NOT_VALIDATED.**", report)
         self.assertIn("No se proporcionó un resultado calculado.", report)
@@ -182,6 +189,7 @@ class GenerateReportTests(unittest.TestCase):
             self.circuit,
             self.incidence,
             netlist,
+            graph=self.graph,
         )
         self.assertIn("````spice\n* ```", report)
 
@@ -194,8 +202,15 @@ class GenerateReportTests(unittest.TestCase):
                 self.circuit,
                 self.incidence,
                 self.netlist,
+                graph=self.graph,
                 sweep=sweep,
             )
+
+    def test_report_requires_oriented_graph_artifact(self) -> None:
+        with self.assertRaisesRegex(
+            ReportGenerationError, "Oriented graph artifact is required"
+        ):
+            generate_report(self.parsed, self.circuit, self.incidence, self.netlist)
 
 
 if __name__ == "__main__":

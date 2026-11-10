@@ -107,13 +107,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Create an oriented circuit graph")
     parser.add_argument("circuit_json", help="Circuit JSON")
     parser.add_argument("-o", "--output", required=True, help="Topology JSON")
-    parser.add_argument("--image", help="Optional graph image (.png or .svg)")
+    parser.add_argument("--image", required=True, help="Required graph image (.png or .svg)")
     args = parser.parse_args()
+    if Path(args.image).suffix.lower() not in {".png", ".svg"}:
+        parser.error("--image must have a .png or .svg extension")
     circuit = load_circuit(args.circuit_json)
     graph = build_graph(circuit)
     Path(args.output).write_text(json.dumps(graph_to_dict(graph, circuit), indent=2), encoding="utf-8")
-    if args.image:
-        draw_graph(graph, args.image)
+    draw_graph(graph, args.image)
     print(f"Built oriented graph with {graph.number_of_nodes()} nodes and {graph.number_of_edges()} branches")
 
 

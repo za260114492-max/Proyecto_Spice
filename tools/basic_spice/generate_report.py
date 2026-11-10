@@ -119,6 +119,15 @@ def _format_vector(values: Any, labels: list[Any], title: str) -> list[str]:
     return lines
 
 
+def _select_matrix(matrix: Any, row_indices: list[int], column_indices: list[int]) -> list[list[Any]]:
+    if not isinstance(matrix, list):
+        raise ReportGenerationError("Matrix blocks require a list matrix")
+    return [
+        [matrix[row][column] for column in column_indices]
+        for row in row_indices
+    ]
+
+
 def _render_results(
     lines: list[str],
     solution: dict[str, Any] | None,
@@ -289,6 +298,8 @@ def generate_report(
     invocation: str | None = None,
 ) -> str:
     """Render a report using supplied artifacts only; this function never solves."""
+    if graph is None:
+        raise ReportGenerationError("Oriented graph artifact is required for every report")
     source_name = circuit.get("source_name")
     if not isinstance(source_name, str) or not source_name:
         raise ReportGenerationError("Circuit source_name is required")
@@ -311,7 +322,15 @@ def generate_report(
             "Parsed element count does not match the circuit branch count"
         )
     source_lines = netlist_text.splitlines()
-    for element, branch in zip(elements, branches):
+    branches_by_component = {branch.get("component_name"): branch for branch in branches}
+    if len(branches_by_component) != len(branches):
+        raise ReportGenerationError("Circuit branches contain duplicate component names")
+    for element in elements:
+        branch = branches_by_component.get(element.get("name"))
+        if branch is None:
+            raise ReportGenerationError(
+                f"Parsed element {element.get('name')!r} is missing from the circuit model"
+            )
         for source_key, model_key in (
             ("name", "component_name"),
             ("type", "element_type"),
@@ -344,12 +363,41 @@ def generate_report(
             )
     node_order = [node.get("id") for node in nodes]
     branch_order = [branch.get("id") for branch in branches]
+    has_ideal_opamp = any(branch.get("element_type") == "O" for branch in branches)
+    if has_ideal_opamp and (stamps is None or constitutive is None or system is None):
+        raise ReportGenerationError(
+            "Academic ideal-op-amp reports require stamps, constitutive matrices, "
+            "and the assembled Tableau system"
+        )
     if incidence.get("node_order_full") != node_order:
         raise ReportGenerationError("Incidence node order does not match the circuit model")
     if incidence.get("branch_order") != branch_order:
         raise ReportGenerationError("Incidence branch order does not match the circuit model")
     if incidence.get("reference_node") != circuit.get("reference_node"):
         raise ReportGenerationError("Incidence reference node does not match the circuit model")
+    if "ordinary_branch_indices" in incidence or "special_branch_indices" in incidence:
+        ordinary_indices = incidence.get("ordinary_branch_indices")
+        special_indices = incidence.get("special_branch_indices")
+        expected_special = [
+            index for index, branch in enumerate(branches)
+            if branch.get("element_type") in {"V", "E", "O"}
+        ]
+        expected_ordinary = [
+            index for index, branch in enumerate(branches)
+            if branch.get("element_type") not in {"V", "E", "O"}
+        ]
+        if ordinary_indices != expected_ordinary or special_indices != expected_special:
+            raise ReportGenerationError(
+                "Incidence A1/A2 branch partition does not match the circuit model"
+            )
+        if incidence.get("branch_order_A1") != [
+            branch_order[index] for index in expected_ordinary
+        ] or incidence.get("branch_order_A2") != [
+            branch_order[index] for index in expected_special
+        ]:
+            raise ReportGenerationError(
+                "Incidence A1/A2 branch labels do not match the circuit model"
+            )
 
     if graph is not None:
         _source_name(graph, "oriented graph", source_name)
@@ -655,23 +703,22 @@ def generate_report(
             f"{_md(branch.get('element_type'))} | {_fmt_number(branch.get('value_si'))} | "
             f"{_md(branch.get('unit'))} |"
         )
-    lines.extend(["", "## 6. Grafo orientado", ""])
-    if graph is None:
-        lines.append("No se proporcionó el artefacto del grafo; no se reconstruye en el reporte.")
-    else:
-        lines.extend(
-            [
-                f"Conectado: `{_md(graph.get('is_connected'))}`.",
-                "",
-                "| Arista | Nodo inicial | Nodo final | Componente |",
-                "|---|---|---|---|",
-            ]
+    lines.extend(
+        [
+            "",
+            "## 6. Grafo orientado",
+            "",
+            f"Conectado: `{_md(graph.get('is_connected'))}`.",
+            "",
+            "| Arista | Nodo inicial | Nodo final | Componente |",
+            "|---|---|---|---|",
+        ]
+    )
+    for edge in graph.get("edges", []):
+        lines.append(
+            f"| {_md(edge.get('key'))} | N{_md(edge.get('node_from'))} | "
+            f"N{_md(edge.get('node_to'))} | {_md(edge.get('component'))} |"
         )
-        for edge in graph.get("edges", []):
-            lines.append(
-                f"| {_md(edge.get('key'))} | N{_md(edge.get('node_from'))} | "
-                f"N{_md(edge.get('node_to'))} | {_md(edge.get('component'))} |"
-            )
     lines.extend(
         [
             "",
@@ -709,6 +756,61 @@ def generate_report(
             ],
         )
     )
+    if "A1" in incidence and "A2" in incidence:
+        special_types = {
+            branch.get("element_type")
+            for index, branch in enumerate(branches)
+            if index in incidence.get("special_branch_indices", [])
+        }
+        partition_description = (
+            "Se clasifican como ramas especiales la fuente ideal de entrada (`V`) "
+            "y las dos ramas auxiliares del OpAmp ideal (`O`)."
+            if "O" in special_types
+            else "Se clasifican como ramas especiales las fuentes ideales de voltaje "
+            "(`V`) y las fuentes VCVS (`E`)."
+        )
+        partition_order = (
+            "Se conserva el orden del documento: `A1` contiene B2-B7 y `A2` "
+            "contiene B1, B8 y B9."
+            if "O" in special_types
+            else "Las columnas se presentan en el orden normalizado del circuito."
+        )
+        lines.extend(
+            [
+                "#### A = [A1 A2]",
+                "",
+                f"{partition_description} {partition_order}",
+                "",
+            ]
+        )
+        lines.extend(
+            _matrix_table(
+                "A1",
+                incidence.get("A1"),
+                incidence.get("node_order_reduced", []),
+                [
+                    f"{branch_id} ({component})"
+                    for branch_id, component in zip(
+                        incidence.get("branch_order_A1", []),
+                        incidence.get("component_order_A1", []),
+                    )
+                ],
+            )
+        )
+        lines.extend(
+            _matrix_table(
+                "A2",
+                incidence.get("A2"),
+                incidence.get("node_order_reduced", []),
+                [
+                    f"{branch_id} ({component})"
+                    for branch_id, component in zip(
+                        incidence.get("branch_order_A2", []),
+                        incidence.get("component_order_A2", []),
+                    )
+                ],
+            )
+        )
     lines.extend(["## 8. Ecuaciones constitutivas", ""])
     if stamps is None:
         lines.append("No se proporcionó el artefacto de stamps; no se infieren ecuaciones.")
@@ -731,6 +833,33 @@ def generate_report(
                 f"({_md(stamp.get('Z_unit'))}) | {_fmt_complex(stamp.get('W'))} "
                 f"({_md(stamp.get('W_unit'))}) |"
             )
+        opamp_stamps = [
+            stamp for stamp in stamps.get("stamps", [])
+            if stamp.get("element_type") == "O"
+        ]
+        if opamp_stamps:
+            differential_branch = next(
+                (
+                    stamp.get("branch_id")
+                    for stamp in opamp_stamps
+                    if stamp.get("equation") == "V(+) - V(-) = 0"
+                ),
+                "B8",
+            )
+            lines.extend(
+                [
+                    "",
+                    "### Interpretación académica del OpAmp ideal",
+                    "",
+                    "El OpAmp se conserva como dos ramas especiales explícitas: "
+                    "la rama diferencial impone `V(+) − V(−) = 0` y la rama de salida "
+                    f"incorpora `I({differential_branch}) = 0` en la matriz `Z`. "
+                    "Esto corresponde al "
+                    "bloque de ramas especiales del documento, sin sustituirlo por "
+                    "una fuente VCVS de ganancia finita.",
+                    "",
+                ]
+            )
     lines.extend(["", "## 9. Matrices de análisis", ""])
     if constitutive is None:
         lines.append("No se proporcionó el artefacto de matrices constitutivas.")
@@ -745,7 +874,61 @@ def generate_report(
                     constitutive_order,
                 )
             )
+        if "node_coupling" in constitutive:
+            lines.extend(
+                _matrix_table(
+                    "Acoplamiento nodal Cn",
+                    constitutive.get("node_coupling"),
+                    constitutive.get("row_order", []),
+                    [f"Vn({node})" for node in constitutive.get("node_order", [])],
+                )
+            )
         lines.extend(_format_vector(constitutive.get("W"), constitutive_order, "W"))
+        ordinary_indices = incidence.get("ordinary_branch_indices", [])
+        special_indices = incidence.get("special_branch_indices", [])
+        if ordinary_indices and special_indices:
+            ordinary_order = [branch_order[index] for index in ordinary_indices]
+            special_order = [branch_order[index] for index in special_indices]
+            lines.extend(
+                [
+                    "### Y1, Y2, Z2 y W2",
+                    "",
+                    "Con el reordenamiento `I = [I1; I2]`, las ramas ordinarias "
+                    "forman `Y1` y las ramas especiales forman `Y2`, `Z2` y `W2`.",
+                    "",
+                ]
+            )
+            lines.extend(
+                _matrix_table(
+                    "Y1",
+                    _select_matrix(constitutive.get("Y"), ordinary_indices, ordinary_indices),
+                    ordinary_order,
+                    ordinary_order,
+                )
+            )
+            lines.extend(
+                _matrix_table(
+                    "Y2",
+                    _select_matrix(constitutive.get("Y"), special_indices, special_indices),
+                    special_order,
+                    special_order,
+                )
+            )
+            lines.extend(
+                _matrix_table(
+                    "Z2",
+                    _select_matrix(constitutive.get("Z"), special_indices, special_indices),
+                    special_order,
+                    special_order,
+                )
+            )
+            lines.extend(
+                _format_vector(
+                    [constitutive.get("W", [])[index] for index in special_indices],
+                    special_order,
+                    "W2",
+                )
+            )
     lines.extend(["", "## 10. Sistema ensamblado", ""])
     if system is not None:
         if system.get("equation") == "T @ X = W_prime":
@@ -770,7 +953,7 @@ def generate_report(
             lines.extend(_format_vector(system.get("rhs"), order, "Vector de excitación"))
     else:
         lines.append("No se proporcionó un sistema nodal o Tableau ensamblado.")
-    lines.extend(_render_results(lines, solution, validation, sweep))
+    _render_results(lines, solution, validation, sweep)
     lines.extend(["### Comparación con referencia", ""])
     if comparison is None:
         lines.append(
@@ -886,7 +1069,7 @@ def main() -> int:
     parser.add_argument("circuit_json", help="Normalized circuit model JSON")
     parser.add_argument("incidence_json", help="Incidence matrices JSON")
     parser.add_argument("-o", "--output", required=True, help="Markdown report output")
-    parser.add_argument("--graph-json", help="Optional oriented graph JSON")
+    parser.add_argument("--graph-json", required=True, help="Required oriented graph JSON")
     parser.add_argument("--stamps-json", help="Optional element stamps JSON")
     parser.add_argument("--constitutive-json", help="Optional Y/Z/W matrices JSON")
     systems = parser.add_mutually_exclusive_group()
